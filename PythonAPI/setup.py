@@ -1,37 +1,26 @@
-from setuptools import dist, setup, Extension
-# To compile and install locally run "python setup.py build_ext --inplace"
-# To install library to Python site-packages run "python setup.py build_ext install"
-
-
-setup_requires=[
-    'setuptools>=18.0',
-    'cython>=0.27.3',
-    'numpy',
-]
-dist.Distribution().fetch_build_eggs(setup_requires)
-
+from distutils.core import setup
+from Cython.Build import cythonize
+from distutils.extension import Extension
 import numpy as np
+
+# To install and compile to your anaconda/python site-packages, simply run:
+# $ pip install git+https://github.com/philferriere/cocoapi.git#subdirectory=PythonAPI
+# Note that the original compile flags below are GCC flags unsupported by the Visual C++ 2015 build tools.
+# They can safely be removed.
 
 ext_modules = [
     Extension(
         'pycocotools._mask',
-        sources=['./common/maskApi.c', 'pycocotools/_mask.pyx'],
-        include_dirs = [np.get_include(), './common'],
-        extra_compile_args=['-Wno-cpp', '-Wno-unused-function', '-std=c99'],
+        sources=['../common/maskApi.c', 'pycocotools/_mask.pyx'],
+        include_dirs = [np.get_include(), '../common'],
+        extra_compile_args=[] # originally was ['-Wno-cpp', '-Wno-unused-function', '-std=c99'],
     )
 ]
 
-setup(
-    name='pycocotools',
-    description='Official APIs for the MS-COCO dataset',
-    packages=['pycocotools'],
-    package_dir = {'pycocotools': 'pycocotools'},
-    setup_requires=setup_requires,
-    install_requires=[
-        'setuptools>=18.0',
-        'cython>=0.27.3',
-        'matplotlib>=2.1.0'
-    ],
-    version='2.0.1',
-    ext_modules= ext_modules
-)
+setup(name='pycocotools',
+      packages=['pycocotools'],
+      package_dir = {'pycocotools': 'pycocotools'},
+      version='2.0',
+      ext_modules=
+          cythonize(ext_modules)
+      )
