@@ -8,10 +8,8 @@ jobs:
     executor: python/default
     steps:
       - checkout
-      - python/load-cache
-      - python/save-cache
       - run:
-          command: python -m pip install PythonAPI
+          command: python -m pip install ./PythonAPI
           name: Install From Source
 
 workflows:
