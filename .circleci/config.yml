@@ -1,0 +1,20 @@
+version: 2.1
+
+orbs:
+  python: circleci/python@0.2.1
+
+jobs:
+  build-from-source:
+    executor: python/default
+    steps:
+      - checkout
+      - python/load-cache
+      - python/save-cache
+      - run:
+          command: python -m pip install PythonAPI
+          name: Install From Source
+
+workflows:
+  main:
+    jobs:
+      - build-from-source
