@@ -20,7 +20,7 @@ jobs:
       - run:
           command: |
             cd PythonAPI && python setup.py sdist
-            python -m pip install dist/*.tar.gz
+            python -m pip install --progress-bar off dist/*.tar.gz
           name: Install From Distribution
 
 workflows:
