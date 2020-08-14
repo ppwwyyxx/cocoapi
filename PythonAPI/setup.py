@@ -2,7 +2,6 @@
 To install library to Python site-packages run "python setup.py build_ext install"
 """
 import platform
-import numpy as np
 from setuptools import dist, setup, Extension
 
 setup_requires = [
@@ -12,12 +11,14 @@ setup_requires = [
 ]
 dist.Distribution().fetch_build_eggs(setup_requires)
 
+import numpy as np
+
 if platform.system() == 'Windows':
     ext_modules = [
         Extension(
             'pycocotools._mask',
-            sources=['../common/maskApi.c', 'pycocotools/_mask.pyx'],
-            include_dirs=[np.get_include(), '../common'],
+            sources=['./common/maskApi.c', 'pycocotools/_mask.pyx'],
+            include_dirs=[np.get_include(), './common'],
             extra_compile_args=[],
         )
     ]
