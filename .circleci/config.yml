@@ -1,0 +1,30 @@
+version: 2.1
+
+orbs:
+  python: circleci/python@0.2.1
+
+jobs:
+  build-from-source:
+    executor: python/default
+    steps:
+      - checkout
+      - run:
+          # TODO in-place pip install is not working
+          command: cd PythonAPI && python setup.py build_ext
+          name: Install From Source
+
+  build-from-sdist:
+    executor: python/default
+    steps:
+      - checkout
+      - run:
+          command: |
+            cd PythonAPI && python setup.py sdist
+            python -m pip install dist/*.tar.gz
+          name: Install From Distribution
+
+workflows:
+  main:
+    jobs:
+      - build-from-source
+      - build-from-sdist
