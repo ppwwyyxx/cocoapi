@@ -22,6 +22,10 @@ jobs:
             cd PythonAPI && python setup.py sdist
             python -m pip install --progress-bar off dist/*.tar.gz
           name: Install From Distribution
+      - run:
+          command: |
+            python tests/test_cases.py
+          name: Run Simple Test Cases
 
 workflows:
   main:

@@ -215,6 +215,7 @@ def iou( dt, gt, pyiscrowd ):
     gt = _preproc(gt)
     m = _len(dt)
     n = _len(gt)
+    assert len(pyiscrowd) == n, "iou(iscrowd=) must have the same length as gt"
     if m == 0 or n == 0:
         return []
     if not type(dt) == type(gt):
