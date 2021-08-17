@@ -9,8 +9,7 @@ jobs:
     steps:
       - checkout
       - run:
-          # TODO in-place pip install is not working
-          command: cd PythonAPI && python setup.py build_ext
+          command: python -m pip install --use-feature=in-tree-build ./PythonAPI
           name: Install From Source
 
   build-from-sdist:
@@ -19,8 +18,9 @@ jobs:
       - checkout
       - run:
           command: |
-            cd PythonAPI && python setup.py sdist
-            python -m pip install --progress-bar off dist/*.tar.gz
+            python -m pip install build
+            python -m build --sdist ./PythonAPI
+            python -m pip install --progress-bar off ./PythonAPI/dist/*.tar.gz
           name: Install From Distribution
       - run:
           command: |

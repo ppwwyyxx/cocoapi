@@ -5,5 +5,5 @@ all:
 
 install:
 	# install pycocotools to the Python site-packages
-	python setup.py build_ext install
+	python -m pip install --use-feature=in-tree-build .
 	rm -rf build
