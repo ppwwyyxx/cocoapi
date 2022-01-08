@@ -11,6 +11,10 @@ jobs:
       - run:
           command: python -m pip install --use-feature=in-tree-build ./PythonAPI
           name: Install From Source
+      - run:
+          command: |
+            python tests/test_cases.py
+          name: Run Simple Test Cases
 
   build-from-sdist:
     executor: python/default
