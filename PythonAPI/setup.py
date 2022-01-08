@@ -1,15 +1,8 @@
 """To compile and install locally run "python setup.py build_ext --inplace".
-To install library to Python site-packages run "python setup.py build_ext install"
+To install library to Python site-packages run "python -m pip install --use-feature=in-tree-build ."
 """
 import platform
-from setuptools import dist, setup, Extension
-
-setup_requires = [
-    'setuptools>=18.0',
-    'cython>=0.27.3',
-    'numpy',
-]
-dist.Distribution().fetch_build_eggs(setup_requires)
+from setuptools import setup, Extension
 
 import numpy as np
 
@@ -30,11 +23,10 @@ setup(
     license="FreeBSD",
     packages=['pycocotools'],
     package_dir={'pycocotools': 'pycocotools'},
-    setup_requires=setup_requires,
+    python_requires='>=3.5',
     install_requires=[
-        'setuptools>=18.0',
-        'cython>=0.27.3',
-        'matplotlib>=2.1.0'
+        'matplotlib>=2.1.0',
+        'numpy',
     ],
     version='2.0.3',
     ext_modules=ext_modules
