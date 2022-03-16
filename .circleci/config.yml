@@ -4,12 +4,28 @@ orbs:
   python: circleci/python@0.2.1
 
 jobs:
-  build-from-source:
+  build-from-source-cython2:
     executor: python/default
     steps:
       - checkout
       - run:
-          command: python -m pip install --use-feature=in-tree-build ./PythonAPI
+          command: |
+            python -m pip install Cython==0.29
+            python -m pip install --use-feature=in-tree-build ./PythonAPI
+          name: Install From Source
+      - run:
+          command: |
+            python tests/test_cases.py
+          name: Run Simple Test Cases
+          
+  build-from-source-cython3:
+    executor: python/default
+    steps:
+      - checkout
+      - run:
+          command: |
+            python -m pip install Cython==3.0.0a10
+            python -m pip install --use-feature=in-tree-build ./PythonAPI
           name: Install From Source
       - run:
           command: |
