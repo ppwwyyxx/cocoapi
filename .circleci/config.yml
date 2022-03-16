@@ -10,7 +10,7 @@ jobs:
       - checkout
       - run:
           command: |
-            python -m pip install Cython<3
+            python -m pip install 'Cython<3'
             python -m pip install --use-feature=in-tree-build ./PythonAPI
           name: Install From Source
       - run:
