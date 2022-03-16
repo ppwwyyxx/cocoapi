@@ -50,5 +50,6 @@ jobs:
 workflows:
   main:
     jobs:
-      - build-from-source
+      - build-from-source-cython2
+      - build-from-source-cython3
       - build-from-sdist
