@@ -51,6 +51,7 @@ byte rleDecode( const RLE *R, byte *M, siz n ) {
           // Memory boundary would be crossed, wrong RLE
           return 0;
         }
+        c++;
         *(M++)=v;
       }
       v=!v;
