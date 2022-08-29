@@ -42,7 +42,7 @@ void rleEncode( RLE *R, const byte *M, siz h, siz w, siz n ) {
 
 byte rleDecode( const RLE *R, byte *M, siz n ) {
   // Safeguards for memory boundary
-  siz s=R[0].h*R[0].w*n
+  siz s=R[0].h*R[0].w*n;
   siz c=0;
   siz i, j, k; for( i=0; i<n; i++ ) {
     byte v=0; for( j=0; j<R[i].m; j++ ) {
