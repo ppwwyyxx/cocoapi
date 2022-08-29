@@ -39,7 +39,7 @@ cdef extern from "maskApi.h":
         uint* cnts,
     void rlesInit( RLE **R, siz n )
     void rleEncode( RLE *R, const byte *M, siz h, siz w, siz n )
-    void rleDecode( const RLE *R, byte *mask, siz n )
+    byte rleDecode( const RLE *R, byte *mask, siz n )
     void rleMerge( const RLE *R, RLE *M, siz n, int intersect )
     void rleArea( const RLE *R, siz n, uint *a )
     void rleIou( RLE *dt, RLE *gt, siz m, siz n, byte *iscrowd, double *o )
@@ -145,7 +145,8 @@ def decode(rleObjs):
     cdef RLEs Rs = _frString(rleObjs)
     h, w, n = Rs._R[0].h, Rs._R[0].w, Rs._n
     masks = Masks(h, w, n)
-    rleDecode(<RLE*>Rs._R, masks._mask, n);
+    if rleDecode(<RLE*>Rs._R, masks._mask, n) != 1:
+        raise ValueError("Invalid RLE mask representation")
     return np.array(masks)
 
 def merge(rleObjs, intersect=0):

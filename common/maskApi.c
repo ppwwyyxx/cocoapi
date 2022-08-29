@@ -40,10 +40,23 @@ void rleEncode( RLE *R, const byte *M, siz h, siz w, siz n ) {
   free(cnts);
 }
 
-void rleDecode( const RLE *R, byte *M, siz n ) {
+byte rleDecode( const RLE *R, byte *M, siz n ) {
+  // Safeguards for memory boundary
+  siz s=R[0].h*R[0].w*n
+  siz c=0;
   siz i, j, k; for( i=0; i<n; i++ ) {
     byte v=0; for( j=0; j<R[i].m; j++ ) {
-      for( k=0; k<R[i].cnts[j]; k++ ) *(M++)=v; v=!v; }}
+      for( k=0; k<R[i].cnts[j]; k++ ) {
+        if ( c >= s ) {
+          // Memory boundary would be crossed, wrong RLE
+          return 0;
+        }
+        *(M++)=v;
+      }
+      v=!v;
+    }
+  }
+  return 1;
 }
 
 void rleMerge( const RLE *R, RLE *M, siz n, int intersect ) {
