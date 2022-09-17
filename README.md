@@ -1,12 +1,15 @@
 
 # pycocotools
 
-This is the source of the pypi package pycocotools, available for download at [pypi](https://pypi.org/project/pycocotools/).
-It is a fork of the original [cocoapi](https://github.com/cocodataset/cocoapi), with some small fixes and packaging improvements:
+This is a fork of the original [cocoapi](https://github.com/cocodataset/cocoapi), with bug fixes and packaging improvements.
 
+This is also the source of the pypi package `pycocotools`, available for download at [pypi](https://pypi.org/project/pycocotools/).
+
+Changes in this fork include:
 * Add CircleCI tests
-* Correct dependencies so it's pip-installable
+* Support pip-installation correctly
 * Support windows
 * Don't import matplotlib unless needed
 * Close file handle after openning
 * Fix a small bug in rleToBbox
+* Fix a segfault in RLE decoding
