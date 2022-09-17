@@ -40,6 +40,8 @@ void rleEncode( RLE *R, const byte *M, siz h, siz w, siz n ) {
   free(cnts);
 }
 
+// Decodes n different RLEs that have the same width and height. Write results to M.
+// Returns whether the decoding succeeds or not.
 byte rleDecode( const RLE *R, byte *M, siz n ) {
   // Safeguards for memory boundary
   siz s=R[0].h*R[0].w*n;
