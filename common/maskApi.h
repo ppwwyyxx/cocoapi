@@ -24,7 +24,7 @@ void rlesFree( RLE **R, siz n );
 void rleEncode( RLE *R, const byte *mask, siz h, siz w, siz n );
 
 /* Decode binary masks encoded via RLE. */
-void rleDecode( const RLE *R, byte *mask, siz n );
+byte rleDecode( const RLE *R, byte *mask, siz n );
 
 /* Compute union or intersection of encoded masks. */
 void rleMerge( const RLE *R, RLE *M, siz n, int intersect );
