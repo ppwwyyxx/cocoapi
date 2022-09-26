@@ -1,0 +1,30 @@
+name: CI
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+jobs:
+  build:
+    name: Build
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: [3.6, 3.7, 3.8, 3.9, "3.10"]
+    runs-on: ${{ matrix.os }}
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python
+      uses: actions/setup-python@v3
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Build Wheel
+      run: python -m pip wheel --no-deps ./PythonAPI
+    - name: Upload build output
+      uses: actions/upload-artifact@v3
+      with:
+        name: build-output
+        path: ${{ github.workspace }}/*.whl
+        retention-days: 1
+        if-no-files-found: error
