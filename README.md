@@ -13,3 +13,5 @@ Changes in this fork include:
 * Close file handle after openning
 * Fix a small bug in rleToBbox
 * Fix a segfault in RLE decoding
+
+For compatibility, we will not make any API changes or non-bug behavior changes to the existing APIs of the official cocoapi.
