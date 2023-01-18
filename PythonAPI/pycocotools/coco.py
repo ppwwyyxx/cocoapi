@@ -65,7 +65,7 @@ def _isArrayLike(obj):
 
 
 class COCO:
-    def __init__(self, annotation_file=None):
+    def __init__(self, annotation_dict):
         """
         Constructor of Microsoft COCO helper class for reading and visualizing annotations.
         :param annotation_file (str): location of annotation file
@@ -75,11 +75,11 @@ class COCO:
         # load dataset
         self.dataset,self.anns,self.cats,self.imgs = dict(),dict(),dict(),dict()
         self.imgToAnns, self.catToImgs = defaultdict(list), defaultdict(list)
-        if not annotation_file == None:
+        if not annotation_dict == None:
             print('loading annotations into memory...')
             tic = time.time()
-            with open(annotation_file, 'r') as f:
-                dataset = json.load(f)
+            
+            dataset = annotation_dict
             assert type(dataset)==dict, 'annotation file format {} not supported'.format(type(dataset))
             print('Done (t={:0.2f}s)'.format(time.time()- tic))
             self.dataset = dataset
@@ -304,7 +304,7 @@ class COCO:
             for ann in anns:
                 print(ann['caption'])
 
-    def loadRes(self, resFile):
+    def loadRes(self, res_dict):
         """
         Load result file and return a result api object.
         :param   resFile (str)     : file name of result file
@@ -315,13 +315,8 @@ class COCO:
 
         print('Loading and preparing results...')
         tic = time.time()
-        if type(resFile) == str or (PYTHON_VERSION == 2 and type(resFile) == unicode):
-            with open(resFile) as f:
-                anns = json.load(f)
-        elif type(resFile) == np.ndarray:
-            anns = self.loadNumpyAnnotations(resFile)
-        else:
-            anns = resFile
+        anns = res_dict
+
         assert type(anns) == list, 'results in not an array of objects'
         annsImgIds = [ann['image_id'] for ann in anns]
         assert set(annsImgIds) == (set(annsImgIds) & set(self.getImgIds())), \
