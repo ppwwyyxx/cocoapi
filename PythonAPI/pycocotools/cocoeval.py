@@ -453,10 +453,26 @@ class COCOeval:
                 mean_s = -1
             else:
                 mean_s = np.mean(s[s>-1])
-            print(iStr.format(titleStr, typeStr, iouStr, areaRng, maxDets, mean_s))
             return mean_s
+    
+        '''def _summarizeDets():
+            
+            mAP_050_095 = _summarize(1)
+            mAP_050 = _summarize(1, iouThr=.5, maxDets=self.params.maxDets[2])
+            mAP_075 = _summarize(1, iouThr=.75, maxDets=self.params.maxDets[2])
+            AP_a_S = _summarize(1, areaRng='small', maxDets=self.params.maxDets[2])
+            AP_a_M = _summarize(1, areaRng='medium', maxDets=self.params.maxDets[2])
+            AP_a_L = _summarize(1, areaRng='large', maxDets=self.params.maxDets[2])
+            AR_MD_1 = _summarize(0, maxDets=self.params.maxDets[0])
+            AR_MD_10 = _summarize(0, maxDets=self.params.maxDets[1])
+            AR_MD_100 = _summarize(0, maxDets=self.params.maxDets[2])
+            AR_a_S = _summarize(0, areaRng='small', maxDets=self.params.maxDets[2])
+            AR_a_M = _summarize(0, areaRng='medium', maxDets=self.params.maxDets[2])
+            AR_a_L = _summarize(0, areaRng='large', maxDets=self.params.maxDets[2])
+            return stats'''
+
         def _summarizeDets():
-            stats = np.zeros((12,))
+            stats = []
             stats[0] = _summarize(1)
             stats[1] = _summarize(1, iouThr=.5, maxDets=self.params.maxDets[2])
             stats[2] = _summarize(1, iouThr=.75, maxDets=self.params.maxDets[2])
@@ -470,6 +486,7 @@ class COCOeval:
             stats[10] = _summarize(0, areaRng='medium', maxDets=self.params.maxDets[2])
             stats[11] = _summarize(0, areaRng='large', maxDets=self.params.maxDets[2])
             return stats
+
         def _summarizeKps():
             stats = np.zeros((10,))
             stats[0] = _summarize(1, maxDets=20)

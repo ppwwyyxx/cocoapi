@@ -310,10 +310,9 @@ class COCO:
         :param   resFile (str)     : file name of result file
         :return: res (obj)         : result api object
         """
-        res = COCO()
-        res.dataset['images'] = [img for img in self.dataset['images']]
+        self.dataset['images'] = [img for img in self.dataset['images']]
 
-        print('Loading and preparing results...')
+        print('Loading and prepari  ng results...')
         tic = time.time()
         anns = res_dict
 
@@ -322,12 +321,12 @@ class COCO:
         assert set(annsImgIds) == (set(annsImgIds) & set(self.getImgIds())), \
                'Results do not correspond to current coco set'
         if 'caption' in anns[0]:
-            imgIds = set([img['id'] for img in res.dataset['images']]) & set([ann['image_id'] for ann in anns])
-            res.dataset['images'] = [img for img in res.dataset['images'] if img['id'] in imgIds]
+            imgIds = set([img['id'] for img in self.dataset['images']]) & set([ann['image_id'] for ann in anns])
+            self.dataset['images'] = [img for img in self.dataset['images'] if img['id'] in imgIds]
             for id, ann in enumerate(anns):
                 ann['id'] = id+1
         elif 'bbox' in anns[0] and not anns[0]['bbox'] == []:
-            res.dataset['categories'] = copy.deepcopy(self.dataset['categories'])
+            self.dataset['categories'] = copy.deepcopy(self.dataset['categories'])
             for id, ann in enumerate(anns):
                 bb = ann['bbox']
                 x1, x2, y1, y2 = [bb[0], bb[0]+bb[2], bb[1], bb[1]+bb[3]]
@@ -337,7 +336,7 @@ class COCO:
                 ann['id'] = id+1
                 ann['iscrowd'] = 0
         elif 'segmentation' in anns[0]:
-            res.dataset['categories'] = copy.deepcopy(self.dataset['categories'])
+            self.dataset['categories'] = copy.deepcopy(self.dataset['categories'])
             for id, ann in enumerate(anns):
                 # now only support compressed RLE format as segmentation results
                 ann['area'] = maskUtils.area(ann['segmentation'])
@@ -346,7 +345,7 @@ class COCO:
                 ann['id'] = id+1
                 ann['iscrowd'] = 0
         elif 'keypoints' in anns[0]:
-            res.dataset['categories'] = copy.deepcopy(self.dataset['categories'])
+            self.dataset['categories'] = copy.deepcopy(self.dataset['categories'])
             for id, ann in enumerate(anns):
                 s = ann['keypoints']
                 x = s[0::3]
@@ -357,9 +356,9 @@ class COCO:
                 ann['bbox'] = [x0,y0,x1-x0,y1-y0]
         print('DONE (t={:0.2f}s)'.format(time.time()- tic))
 
-        res.dataset['annotations'] = anns
-        res.createIndex()
-        return res
+        self.dataset['annotations'] = anns
+        self.createIndex()
+        return self
 
     def download(self, tarDir = None, imgIds = [] ):
         '''
