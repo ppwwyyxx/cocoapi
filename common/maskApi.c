@@ -148,7 +148,7 @@ void bbNms( BB dt, siz n, uint *keep, double thr ) {
 
 void rleToBbox( const RLE *R, BB bb, siz n ) {
   siz i; for( i=0; i<n; i++ ) {
-    uint h, w, xs, ys, xe, ye, xp, cc; siz j, m;
+    uint h, w, xs, ys, xe, ye, cc; siz j, m;
     h=(uint)R[i].h; w=(uint)R[i].w; m=R[i].m;
     m=((siz)(m/2))*2; xs=w; ys=h; xe=ye=0; cc=0;
     if(m==0) { bb[4*i+0]=bb[4*i+1]=bb[4*i+2]=bb[4*i+3]=0; continue; }
@@ -194,8 +194,10 @@ void rleFrPoly( RLE *R, const double *xy, siz k, siz h, siz w ) {
   /* upsample and get discrete points densely along entire boundary */
   siz j, m=0; double scale=5; int *x, *y, *u, *v; uint *a, *b;
   x=malloc(sizeof(int)*(k+1)); y=malloc(sizeof(int)*(k+1));
-  for(j=0; j<k; j++) x[j]=(int)(scale*xy[j*2+0]+.5); x[k]=x[0];
-  for(j=0; j<k; j++) y[j]=(int)(scale*xy[j*2+1]+.5); y[k]=y[0];
+  for(j=0; j<k; j++) x[j]=(int)(scale*xy[j*2+0]+.5);
+  x[k]=x[0];
+  for(j=0; j<k; j++) y[j]=(int)(scale*xy[j*2+1]+.5);
+  y[k]=y[0];
   for(j=0; j<k; j++) m+=umax(abs(x[j]-x[j+1]),abs(y[j]-y[j+1]))+1;
   u=malloc(sizeof(int)*m); v=malloc(sizeof(int)*m); m=0;
   for( j=0; j<k; j++ ) {
@@ -240,7 +242,8 @@ char* rleToString( const RLE *R ) {
     x=(long) R->cnts[i]; if(i>2) x-=(long) R->cnts[i-2]; more=1;
     while( more ) {
       char c=x & 0x1f; x >>= 5; more=(c & 0x10) ? x!=-1 : x!=0;
-      if(more) c |= 0x20; c+=48; s[p++]=c;
+      if(more) c |= 0x20;
+      c+=48; s[p++]=c;
     }
   }
   s[p]=0; return s;
@@ -248,7 +251,8 @@ char* rleToString( const RLE *R ) {
 
 void rleFrString( RLE *R, char *s, siz h, siz w ) {
   siz m=0, p=0, k; long x; int more; uint *cnts;
-  while( s[m] ) m++; cnts=malloc(sizeof(uint)*m); m=0;
+  while( s[m] ) m++;
+  cnts=malloc(sizeof(uint)*m); m=0;
   while( s[p] ) {
     x=0; k=0; more=1;
     while( more ) {
@@ -256,7 +260,8 @@ void rleFrString( RLE *R, char *s, siz h, siz w ) {
       more = c & 0x20; p++; k++;
       if(!more && (c & 0x10)) x |= -1 << 5*k;
     }
-    if(m>2) x+=(long) cnts[m-2]; cnts[m++]=(uint) x;
+    if(m>2) x+=(long) cnts[m-2];
+    cnts[m++]=(uint) x;
   }
   rleInit(R,h,w,m,cnts); free(cnts);
 }
