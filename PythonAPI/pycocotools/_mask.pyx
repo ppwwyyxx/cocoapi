@@ -210,12 +210,13 @@ def iou( dt, gt, pyiscrowd ):
     # convert iscrowd to numpy array
     cdef np.ndarray[np.uint8_t, ndim=1] iscrowd = np.array(pyiscrowd, dtype=np.uint8)
     # simple type checking
-    cdef siz m, n
+    cdef siz m, n, crowd_length
     dt = _preproc(dt)
     gt = _preproc(gt)
     m = _len(dt)
     n = _len(gt)
-    assert len(pyiscrowd) == n, "iou(iscrowd=) must have the same length as gt"
+    crowd_length = len(pyiscrowd)
+    assert crowd_length == n, "iou(iscrowd=) must have the same length as gt"
     if m == 0 or n == 0:
         return []
     if not type(dt) == type(gt):
