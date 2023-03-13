@@ -106,7 +106,7 @@ class COCOeval:
         # set ignore flag
         for gt in gts:
             gt['ignore'] = gt['ignore'] if 'ignore' in gt else 0
-            gt['ignore'] = 'iscrowd' in gt and gt['iscrowd']
+            # gt['ignore'] = 'iscrowd' in gt and gt['iscrowd'] 注释掉这行，为了解决在使用rle编码的数据集进行evaluation的时候，pycocotools的问题
             if p.iouType == 'keypoints':
                 gt['ignore'] = (gt['num_keypoints'] == 0) or gt['ignore']
         self._gts = defaultdict(list)       # gt for evaluation
