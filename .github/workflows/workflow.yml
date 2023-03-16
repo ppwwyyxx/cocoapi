@@ -61,12 +61,9 @@ jobs:
       - name: Run Simple Test Cases
         run: |
           python tests/test_cases.py
-      - name:
-        run: |
-          cd ./PythonAPI/dist
-          ls -la
       - name: Upload wheel
         uses: actions/upload-artifact@v3
         with:
-          path: dist/*.tar.gz
+          name: pycocotools
+          path: ./PythonAPI/dist/*.tar.gz
 
