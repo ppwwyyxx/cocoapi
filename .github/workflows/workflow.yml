@@ -65,7 +65,7 @@ jobs:
         run: |
           python tests/test_cases.py
       - name: Upload wheel
-        uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v3
         with:
           name: pycocotools-${{ matrix.python }}-${{matrix.os}}-wheel
           path: ./PythonAPI/dist/*.tar.gz
