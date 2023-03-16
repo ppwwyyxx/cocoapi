@@ -24,8 +24,7 @@ jobs:
       - name: Source wheel
         uses: actions/upload-artifact@v3
         with:
-          name: pycocotools_source-${{ matrix.python }}-${{matrix.os}}-wheel
-          path: ./PythonAPI/dist/*.tar.gz
+          path: ./dist/*.tar.gz
 
   build-from-source-prerelease:
     runs-on: ubuntu-latest
@@ -48,8 +47,7 @@ jobs:
       - name: Upload wheel
         uses: actions/upload-artifact@v3
         with:
-          name: pycocotools_prerelease-${{ matrix.python }}-${{matrix.os}}-wheel
-          path: ./PythonAPI/dist/*.tar.gz
+          path: ./dist/*.tar.gz
 
   build-from-sdist:
     runs-on: ubuntu-latest
@@ -74,6 +72,5 @@ jobs:
       - name: Upload wheel
         uses: actions/upload-artifact@v3
         with:
-          name: pycocotools_sdist-${{ matrix.python }}-${{matrix.os}}-wheel
-          path: ./PythonAPI/dist/*.tar.gz
+          path: ./dist/*.tar.gz
 
