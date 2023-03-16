@@ -25,7 +25,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: pycocotools_source-${{ matrix.python }}-${{matrix.os}}-wheel
-          path: dist/*.whl
+          path: ./PythonAPI/dist/*.whl
 
   build-from-source-prerelease:
     runs-on: ubuntu-latest
@@ -49,7 +49,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: pycocotools_prerelease-${{ matrix.python }}-${{matrix.os}}-wheel
-          path: dist/*.whl
+          path: ./PythonAPI/dist/*.whl
 
   build-from-sdist:
     runs-on: ubuntu-latest
@@ -75,5 +75,5 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: pycocotools_sdist-${{ matrix.python }}-${{matrix.os}}-wheel
-          path: dist/*.whl
+          path: ./PythonAPI/dist/*.whl
 
