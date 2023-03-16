@@ -4,9 +4,10 @@ on: [ push, pull_request ]
 
 jobs:
   build-from-source:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
+        os: [ ubuntu-latest, macos-latest ]
         python-version: [ '3.8', '3.9', '3.10', '3.11' ]
     steps:
       - uses: actions/checkout@v3
@@ -23,9 +24,10 @@ jobs:
           python tests/test_cases.py
 
   build-from-source-prerelease:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
+        os: [ ubuntu-latest, macos-latest ]
         python-version: [ '3.8', '3.9', '3.10', '3.11' ]
     steps:
       - uses: actions/checkout@v3
@@ -42,9 +44,10 @@ jobs:
           python tests/test_cases.py
 
   build-from-sdist:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
+        os: [ubuntu-latest, macos-latest]
         python-version: [ '3.8', '3.9', '3.10', '3.11' ]
     steps:
       - uses: actions/checkout@v3
@@ -64,6 +67,6 @@ jobs:
       - name: Upload wheel
         uses: actions/upload-artifact@v3
         with:
-          name: pycocotools
+          name: pycocotools-${{ matrix.python }}-${{matrix.os}}-wheel
           path: ./PythonAPI/dist/*.tar.gz
 
