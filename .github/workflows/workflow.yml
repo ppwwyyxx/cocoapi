@@ -24,7 +24,7 @@ jobs:
       - name: Source wheel
         uses: actions/upload-artifact@v3
         with:
-          path: ./dist/*.tar.gz
+          path: ./PythonAPI/dist/*.tar.gz
 
   build-from-source-prerelease:
     runs-on: ubuntu-latest
@@ -47,7 +47,7 @@ jobs:
       - name: Upload wheel
         uses: actions/upload-artifact@v3
         with:
-          path: ./dist/*.tar.gz
+          path: ./PythonAPI/dist/*.tar.gz
 
   build-from-sdist:
     runs-on: ubuntu-latest
@@ -72,5 +72,5 @@ jobs:
       - name: Upload wheel
         uses: actions/upload-artifact@v3
         with:
-          path: ./dist/*.tar.gz
+          path: ./PythonAPI/dist/*.tar.gz
 
