@@ -69,6 +69,9 @@ jobs:
       - name: Run Simple Test Cases
         run: |
           python tests/test_cases.py
+      - name:
+        run: |
+          ls -la
       - name: Upload wheel
         uses: actions/upload-artifact@v3
         with:
