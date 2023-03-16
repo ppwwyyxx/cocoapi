@@ -21,10 +21,6 @@ jobs:
       - name: Run Simple Test Cases
         run: |
           python tests/test_cases.py
-      - name: Source wheel
-        uses: actions/upload-artifact@v3
-        with:
-          path: ./*.tar.gz
 
   build-from-source-prerelease:
     runs-on: ubuntu-latest
@@ -44,10 +40,6 @@ jobs:
       - name: Run Simple Test Cases
         run: |
           python tests/test_cases.py
-      - name: Upload wheel
-        uses: actions/upload-artifact@v3
-        with:
-          path: ./dist/*.tar.gz
 
   build-from-sdist:
     runs-on: ubuntu-latest
@@ -71,7 +63,7 @@ jobs:
           python tests/test_cases.py
       - name:
         run: |
-          cd ./PythonAPI
+          cd ./PythonAPI/dist
           ls -la
       - name: Upload wheel
         uses: actions/upload-artifact@v3
