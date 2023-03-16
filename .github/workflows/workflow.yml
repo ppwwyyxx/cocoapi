@@ -1,14 +1,14 @@
 name: Python API CI
 
-on: [ push, pull_request ]
+on: [push, pull_request]
 
 jobs:
   build-from-source:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ ubuntu-latest, macos-latest ]
-        python-version: [ '3.8', '3.9', '3.10', '3.11' ]
+        os: [ubuntu-latest, macos-latest]
+        python-version: ["3.8", "3.9", "3.10", "3.11"]
     steps:
       - uses: actions/checkout@v3
       - name: Setup Python ${{ matrix.python-version }}
@@ -27,8 +27,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ ubuntu-latest, macos-latest ]
-        python-version: [ '3.8', '3.9', '3.10', '3.11' ]
+        os: [ubuntu-latest, macos-latest]
+        python-version: ["3.8", "3.9", "3.10", "3.11"]
     steps:
       - uses: actions/checkout@v3
       - name: Setup Python ${{ matrix.python-version }}
@@ -48,7 +48,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
-        python-version: [ '3.8', '3.9', '3.10', '3.11' ]
+        python-version: ["3.8", "3.9", "3.10", "3.11"]
     steps:
       - uses: actions/checkout@v3
       - name: Setup Python ${{ matrix.python-version }}
@@ -65,8 +65,7 @@ jobs:
         run: |
           python tests/test_cases.py
       - name: Upload wheel
-      - uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v3
         with:
-          name: pycocotools-${{ matrix.python }}-${{matrix.os}}-wheel
+          name: pycocotools-${{ matrix.python-version }}-${{matrix.os}}-wheel
           path: ./PythonAPI/dist/*.tar.gz
-
