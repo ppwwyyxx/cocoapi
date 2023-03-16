@@ -17,7 +17,7 @@ jobs:
       - name: Install From Source
         run: |
           python -m pip install --upgrade pip
-          python -m pip install --use-feature=in-tree-build ./PythonAPI
+          python -m pip install ./PythonAPI
       - name: Run Simple Test Cases
         run: |
           python tests/test_cases.py
@@ -36,7 +36,7 @@ jobs:
       - name: Install From Source
         run: |
           python -m pip install --upgrade pip
-          python -m pip install --pre --use-feature=in-tree-build ./PythonAPI
+          python -m pip install --pre ./PythonAPI
       - name: Run Simple Test Cases
         run: |
           python tests/test_cases.py
