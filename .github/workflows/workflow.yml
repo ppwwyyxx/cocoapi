@@ -1,13 +1,13 @@
 name: Python API CI
 
-on: [push, pull_request]
+on: [ push, pull_request ]
 
 jobs:
   build-from-source:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['3.8', '3.9', '3.10', '3.11']
+        python-version: [ '3.8', '3.9', '3.10', '3.11' ]
     steps:
       - uses: actions/checkout@v3
       - name: Setup Python ${{ matrix.python-version }}
@@ -21,12 +21,17 @@ jobs:
       - name: Run Simple Test Cases
         run: |
           python tests/test_cases.py
+      - name: Source wheel
+        uses: actions/upload-artifact@v3
+        with:
+          name: pycocotools_source-${{ matrix.python }}-${{matrix.os}}-wheel
+          path: dist/*.whl
 
   build-from-source-prerelease:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['3.8', '3.9', '3.10', '3.11']
+        python-version: [ '3.8', '3.9', '3.10', '3.11' ]
     steps:
       - uses: actions/checkout@v3
       - name: Setup Python ${{ matrix.python-version }}
@@ -40,12 +45,17 @@ jobs:
       - name: Run Simple Test Cases
         run: |
           python tests/test_cases.py
+      - name: Upload wheel
+        uses: actions/upload-artifact@v3
+        with:
+          name: pycocotools_prerelease-${{ matrix.python }}-${{matrix.os}}-wheel
+          path: dist/*.whl
 
   build-from-sdist:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['3.8', '3.9', '3.10', '3.11']
+        python-version: [ '3.8', '3.9', '3.10', '3.11' ]
     steps:
       - uses: actions/checkout@v3
       - name: Setup Python ${{ matrix.python-version }}
@@ -61,4 +71,9 @@ jobs:
       - name: Run Simple Test Cases
         run: |
           python tests/test_cases.py
+      - name: Upload wheel
+        uses: actions/upload-artifact@v3
+        with:
+          name: pycocotools_sdist-${{ matrix.python }}-${{matrix.os}}-wheel
+          path: dist/*.whl
 
