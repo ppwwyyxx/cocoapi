@@ -5,5 +5,5 @@ all:
 
 install:
 	# install pycocotools to the Python site-packages
-	python3 -m pip install .
+	python3 -m pip install --use-feature=in-tree-build .
 	rm -rf build
