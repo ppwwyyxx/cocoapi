@@ -2,7 +2,7 @@
 To install library to Python site-packages run "python -m pip install --use-feature=in-tree-build ."
 """
 import platform
-from setuptools import setup, Extension, find_packages
+from setuptools import setup, Extension
 
 import numpy as np
 
@@ -21,7 +21,7 @@ setup(
     description='Official APIs for the MS-COCO dataset',
     url="https://github.com/ppwwyyxx/cocoapi",
     license="FreeBSD",
-    packages=find_packages('pycocotools', exclude=('tests*')),
+    packages=['pycocotools'],
     package_dir={'pycocotools': 'pycocotools'},
     python_requires='>=3.5',
     install_requires=[
