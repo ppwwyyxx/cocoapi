@@ -1,9 +1,9 @@
 all:
     # install pycocotools locally
-	python setup.py build_ext --inplace
+	python3 setup.py build_ext --inplace
 	rm -rf build
 
 install:
 	# install pycocotools to the Python site-packages
-	python -m pip install --use-feature=in-tree-build .
+	python3 -m pip install .
 	rm -rf build

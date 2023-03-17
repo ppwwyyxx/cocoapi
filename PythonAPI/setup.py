@@ -21,7 +21,7 @@ setup(
     description='Official APIs for the MS-COCO dataset',
     url="https://github.com/ppwwyyxx/cocoapi",
     license="FreeBSD",
-    packages=find_packages('pycocotools', exclude=('tests', 'tests.*')),
+    packages=find_packages('pycocotools', exclude=('tests*')),
     package_dir={'pycocotools': 'pycocotools'},
     python_requires='>=3.5',
     install_requires=[
