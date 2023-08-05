@@ -17,7 +17,10 @@ ext_modules = [
         )
     ]
 
-readme = Path(__file__).parent.parent.joinpath("README.md").read_text("utf-8")
+try:
+    readme = Path(__file__).parent.parent.joinpath("README.md").read_text("utf-8")
+except FileNotFoundError:
+    readme = ""
 
 
 setup(
