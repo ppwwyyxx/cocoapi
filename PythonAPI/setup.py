@@ -2,6 +2,7 @@
 To install library to Python site-packages run "python -m pip install --use-feature=in-tree-build ."
 """
 import platform
+from pathlib import Path
 from setuptools import setup, Extension
 
 import numpy as np
@@ -16,9 +17,14 @@ ext_modules = [
         )
     ]
 
+readme = Path(__file__).parent.parent.joinpath("README.md").read_text("utf-8")
+
+
 setup(
     name='pycocotools',
     description='Official APIs for the MS-COCO dataset',
+    long_description=readme,
+    long_description_content_type="text/markdown",
     url="https://github.com/ppwwyyxx/cocoapi",
     license="FreeBSD",
     packages=['pycocotools'],
