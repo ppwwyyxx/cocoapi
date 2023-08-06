@@ -35,6 +35,7 @@ jobs:
           CIBW_PROJECT_REQUIRES_PYTHON: ">=3.7"
           CIBW_SKIP: "pp* *musllinux*"
           CIBW_ARCHS: ${{ matrix.cibw_archs }}
+          CIBW_TEST_COMMAND: python {project}/tests/test_cases.py
         with:
           package-dir: ./PythonAPI
 
@@ -42,7 +43,11 @@ jobs:
         with:
           path: ./wheelhouse/*.whl
 
+  test_source:
+    uses: ./.github/workflows/test.yml
+
   build_sdist:
+    needs: test_source
     name: Build source distribution
     runs-on: ubuntu-latest
     steps:
