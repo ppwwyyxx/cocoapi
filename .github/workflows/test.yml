@@ -12,7 +12,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-        install_from: [source, sdist]
+        install_from: [source, source_with_pre, sdist]
 
     steps:
       - uses: actions/checkout@v3
@@ -28,6 +28,10 @@ jobs:
       - name: Install from source
         if: matrix.install_from == 'source'
         run: pip install ./PythonAPI
+
+      - name: Install from source_with_pre
+        if: matrix.install_from == 'source_with_pre'
+        run: pip install --pre ./PythonAPI
 
       - name: Install from sdist
         if: matrix.install_from == 'sdist'
