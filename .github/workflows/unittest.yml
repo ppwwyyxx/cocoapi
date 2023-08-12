@@ -1,0 +1,45 @@
+name: Test
+
+on:
+  - push
+  - pull_request
+  - workflow_call
+
+jobs:
+  test:
+    name: Test on ${{ matrix.os }}, ${{ matrix.install_from }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        install_from: [source, source_with_pre, sdist]
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.x"
+
+      - name: Fix windows symlink
+        if: matrix.os == 'windows-latest'
+        shell: bash
+        run: rm ./PythonAPI/common && cp -r ./common ./PythonAPI
+
+      - name: Install from source
+        if: matrix.install_from == 'source'
+        run: pip install ./PythonAPI
+
+      - name: Install from source with prerelease.
+        if: matrix.install_from == 'source_with_pre'
+        # This tests compatibility with pre-release dependencies
+        run: pip install --pre ./PythonAPI
+
+      - name: Install from sdist
+        if: matrix.install_from == 'sdist'
+        shell: bash
+        run: |
+          pipx run build --sdist ./PythonAPI
+          pip install ./PythonAPI/dist/*.tar.gz
+
+      - name: Run test cases
+        run: python tests/test_cases.py
