@@ -44,7 +44,7 @@ jobs:
           path: ./wheelhouse/*.whl
 
   test_source:
-    uses: ./.github/workflows/test.yml
+    uses: ./.github/workflows/unittest.yml
 
   build_sdist:
     needs: test_source
