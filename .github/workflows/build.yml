@@ -1,0 +1,79 @@
+name: Build and Publish
+
+on:
+  - workflow_dispatch
+
+jobs:
+  build_wheels:
+    name: Build wheels on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            cibw_archs: auto64
+          - os: ubuntu-latest
+            cibw_archs: aarch64
+          - os: windows-latest
+            cibw_archs: auto64
+          - os: macos-latest
+            cibw_archs: universal2
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up QEMU
+        if: matrix.cibw_archs == 'aarch64'
+        uses: docker/setup-qemu-action@v2
+        with:
+          platforms: arm64
+
+      - name: Build wheels
+        uses: pypa/cibuildwheel@v2.14
+        env:
+          CIBW_BUILD_FRONTEND: build
+          CIBW_PROJECT_REQUIRES_PYTHON: ">=3.7"
+          CIBW_SKIP: "pp* *musllinux*"
+          CIBW_ARCHS: ${{ matrix.cibw_archs }}
+          CIBW_TEST_COMMAND: python {project}/tests/test_cases.py
+        with:
+          package-dir: ./PythonAPI
+
+      - uses: actions/upload-artifact@v3
+        with:
+          path: ./wheelhouse/*.whl
+
+  test_source:
+    uses: ./.github/workflows/unittest.yml
+
+  build_sdist:
+    needs: test_source
+    name: Build source distribution
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Build sdist
+        run: pipx run build --sdist ./PythonAPI
+
+      - uses: actions/upload-artifact@v3
+        with:
+          path: ./PythonAPI/dist/*.tar.gz
+
+  publish:
+    needs: [build_wheels, build_sdist]
+    name: Publish package to PyPI
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/download-artifact@v3
+        with:
+          name: artifact
+          path: dist
+
+      - name: Display structure of downloaded files
+        run: ls -R dist
+
+      - uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          password: ${{ secrets.PYPI_API_TOKEN }}
