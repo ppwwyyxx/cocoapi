@@ -3,7 +3,7 @@
 
 This is a fork of the original [cocoapi](https://github.com/cocodataset/cocoapi), with bug fixes and packaging improvements.
 
-This is also the source of the pypi package `pycocotools`, available for download at [pypi](https://pypi.org/project/pycocotools/).
+This is also the "official" source of the pypi package `pycocotools`, available for download at [pypi](https://pypi.org/project/pycocotools/).
 
 Changes in this fork include:
 * Add CircleCI tests
