@@ -455,33 +455,53 @@ class COCOeval:
                 mean_s = np.mean(s[s>-1])
             print(iStr.format(titleStr, typeStr, iouStr, areaRng, maxDets, mean_s))
             return mean_s
+
         def _summarizeDets():
-            stats = np.zeros((12,))
-            stats[0] = _summarize(1)
-            stats[1] = _summarize(1, iouThr=.5, maxDets=self.params.maxDets[2])
-            stats[2] = _summarize(1, iouThr=.75, maxDets=self.params.maxDets[2])
-            stats[3] = _summarize(1, areaRng='small', maxDets=self.params.maxDets[2])
-            stats[4] = _summarize(1, areaRng='medium', maxDets=self.params.maxDets[2])
-            stats[5] = _summarize(1, areaRng='large', maxDets=self.params.maxDets[2])
-            stats[6] = _summarize(0, maxDets=self.params.maxDets[0])
-            stats[7] = _summarize(0, maxDets=self.params.maxDets[1])
-            stats[8] = _summarize(0, maxDets=self.params.maxDets[2])
-            stats[9] = _summarize(0, areaRng='small', maxDets=self.params.maxDets[2])
-            stats[10] = _summarize(0, areaRng='medium', maxDets=self.params.maxDets[2])
-            stats[11] = _summarize(0, areaRng='large', maxDets=self.params.maxDets[2])
+            # Calculate the size of stats based on area ranges, IoU thresholds, and max detections
+            num_area_ranges = len(self.params.areaRngLbl)  # Number of area ranges
+            num_iou_thrs = 3  # Typically, IoU thresholds at 0.5, 0.75, and 0.5:0.95 (mean AP)
+            num_dets = len(self.params.maxDets)  # Number of max detection thresholds
+
+            # Total number of stats to calculate
+            total_stats = num_iou_thrs * num_area_ranges + num_dets
+
+            # Initialize the stats array
+            stats = np.zeros((total_stats,))
+
+            # Calculate stats
+            stats_index = 0
+            for iouThr in [None, 0.5, 0.75]:
+                for areaLbl in self.params.areaRngLbl:
+                    stats[stats_index] = _summarize(1, iouThr=iouThr, areaRng=areaLbl, maxDets=self.params.maxDets[-1])
+                    stats_index += 1
+
+            # Include additional stats for different maxDet values
+            for maxDet in self.params.maxDets:
+                stats[stats_index] = _summarize(0, maxDets=maxDet)
+                stats_index += 1
+
             return stats
+
+            return stats
+
         def _summarizeKps():
-            stats = np.zeros((10,))
-            stats[0] = _summarize(1, maxDets=20)
-            stats[1] = _summarize(1, maxDets=20, iouThr=.5)
-            stats[2] = _summarize(1, maxDets=20, iouThr=.75)
-            stats[3] = _summarize(1, maxDets=20, areaRng='medium')
-            stats[4] = _summarize(1, maxDets=20, areaRng='large')
-            stats[5] = _summarize(0, maxDets=20)
-            stats[6] = _summarize(0, maxDets=20, iouThr=.5)
-            stats[7] = _summarize(0, maxDets=20, iouThr=.75)
-            stats[8] = _summarize(0, maxDets=20, areaRng='medium')
-            stats[9] = _summarize(0, maxDets=20, areaRng='large')
+            # Calculate the size of stats based on area ranges and IoU thresholds
+            num_area_ranges = len(self.params.areaRngLbl)  # Number of area ranges
+            num_iou_thrs = 3  # IoU thresholds at 0.5, 0.75, and mean AP
+
+            # Total number of stats to calculate
+            total_stats = num_iou_thrs * num_area_ranges
+
+            # Initialize the stats array
+            stats = np.zeros((total_stats,))
+
+            # Calculate stats
+            stats_index = 0
+            for iouThr in [None, 0.5, 0.75]:
+                for areaLbl in self.params.areaRngLbl:
+                    stats[stats_index] = _summarize(1, iouThr=iouThr, areaRng=areaLbl, maxDets=20)
+                    stats_index += 1
+
             return stats
         if not self.eval:
             raise Exception('Please run accumulate() first')
