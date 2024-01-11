@@ -482,8 +482,6 @@ class COCOeval:
 
             return stats
 
-            return stats
-
         def _summarizeKps():
             # Calculate the size of stats based on area ranges and IoU thresholds
             num_area_ranges = len(self.params.areaRngLbl)  # Number of area ranges
