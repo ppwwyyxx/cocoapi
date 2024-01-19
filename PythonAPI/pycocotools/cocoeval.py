@@ -4,7 +4,7 @@ import numpy as np
 import datetime
 import time
 from collections import defaultdict
-from . import mask as maskUtils
+from pycocotools import mask as maskUtils
 import copy
 
 class COCOeval:
@@ -456,7 +456,7 @@ class COCOeval:
             print(iStr.format(titleStr, typeStr, iouStr, areaRng, maxDets, mean_s))
             return mean_s
 
-                def _summarizeDets():
+        def _summarizeDets():
             # Calculate the size of stats based on area ranges, IoU thresholds, and max detections
             num_area_ranges = len(self.params.areaRngLbl)  # Number of area ranges
             num_iou_thrs = 3  # IoU thresholds at 0.5, 0.75, and 0.5:0.95 (mean AP)
