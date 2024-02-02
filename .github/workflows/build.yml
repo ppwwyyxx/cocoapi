@@ -32,9 +32,10 @@ jobs:
         uses: pypa/cibuildwheel@v2.16
         env:
           CIBW_BUILD_FRONTEND: build
-          CIBW_PROJECT_REQUIRES_PYTHON: ">=3.8"
+          CIBW_PROJECT_REQUIRES_PYTHON: ">=3.9"
           CIBW_SKIP: "pp* *musllinux*"
           CIBW_ARCHS: ${{ matrix.cibw_archs }}
+          CIBW_BEFORE_TEST: pip install --force-reinstall numpy
           CIBW_TEST_COMMAND: python {project}/tests/test_cases.py
         with:
           package-dir: ./PythonAPI
