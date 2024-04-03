@@ -5,7 +5,7 @@ on:
 
 jobs:
   build_wheels:
-    name: Build wheels on ${{ matrix.os }}
+    name: Build wheels on ${{ matrix.os }}-${{ matrix.cibw_archs }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -16,6 +16,9 @@ jobs:
           - os: ubuntu-latest # linux arm64 gnu
             cibw_archs: aarch64
             cibw_skip: "pp* *musllinux*"
+          - os: ubuntu-latest # linux arm64 musl
+            cibw_archs: aarch64
+            cibw_skip: "pp* *manylinux*"
           - os: windows-latest
             cibw_archs: AMD64 ARM64
             cibw_skip: "pp*"
@@ -40,12 +43,13 @@ jobs:
           CIBW_SKIP: ${{ matrix.cibw_skip }}
           CIBW_ARCHS: ${{ matrix.cibw_archs }}
           CIBW_TEST_COMMAND: python {project}/tests/test_cases.py
+          CIBW_TEST_SKIP: "*-win_arm64 *-musllinux_aarch64"
         with:
           package-dir: ./PythonAPI
 
       - uses: actions/upload-artifact@v4
         with:
-          name: pycocotools-${{ matrix.os }}-${{ matrix.cibw_archs }}
+          name: pycocotools-${{ matrix.os }}-${{ matrix.cibw_archs }}-${{ strategy.job-index }}
           path: ./wheelhouse/*.whl
 
   test_source:
