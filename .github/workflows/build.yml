@@ -5,42 +5,51 @@ on:
 
 jobs:
   build_wheels:
-    name: Build wheels on ${{ matrix.os }}
+    name: Build wheels on ${{ matrix.os }}-${{ matrix.cibw_archs }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         include:
-          - os: ubuntu-latest
-            cibw_archs: auto64
-          - os: ubuntu-latest
+          - os: ubuntu-latest # linux x86_64
+            cibw_archs: x86_64
+            cibw_skip: "pp*"
+          - os: ubuntu-latest # linux arm64 gnu
             cibw_archs: aarch64
+            cibw_skip: "pp* *musllinux*"
+          - os: ubuntu-latest # linux arm64 musl
+            cibw_archs: aarch64
+            cibw_skip: "pp* *manylinux*"
           - os: windows-latest
-            cibw_archs: auto64
-          - os: macos-latest
+            cibw_archs: AMD64 ARM64
+            cibw_skip: "pp*"
+          - os: macos-14
             cibw_archs: universal2
+            cibw_skip: "pp*"
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Set up QEMU
-        if: matrix.cibw_archs == 'aarch64'
-        uses: docker/setup-qemu-action@v2
+        if: runner.os == 'Linux' && matrix.cibw_archs == 'aarch64'
+        uses: docker/setup-qemu-action@v3
         with:
           platforms: arm64
 
-      - name: Build wheels
-        uses: pypa/cibuildwheel@v2.14
+      - name: Build wheels on ${{ matrix.os }}-${{ matrix.cibw_archs }}
+        uses: pypa/cibuildwheel@v2.17
         env:
           CIBW_BUILD_FRONTEND: build
-          CIBW_PROJECT_REQUIRES_PYTHON: ">=3.7"
-          CIBW_SKIP: "pp* *musllinux*"
+          CIBW_PROJECT_REQUIRES_PYTHON: ">=3.9"
+          CIBW_SKIP: ${{ matrix.cibw_skip }}
           CIBW_ARCHS: ${{ matrix.cibw_archs }}
           CIBW_TEST_COMMAND: python {project}/tests/test_cases.py
+          CIBW_TEST_SKIP: "*-win_arm64 *-musllinux_aarch64"
         with:
           package-dir: ./PythonAPI
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
+          name: pycocotools-${{ matrix.os }}-${{ matrix.cibw_archs }}-${{ strategy.job-index }}
           path: ./wheelhouse/*.whl
 
   test_source:
@@ -51,13 +60,14 @@ jobs:
     name: Build source distribution
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Build sdist
         run: pipx run build --sdist ./PythonAPI
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
+          name: pycocotools-sdist
           path: ./PythonAPI/dist/*.tar.gz
 
   publish:
@@ -71,10 +81,10 @@ jobs:
       id-token: write
 
     steps:
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
-          name: artifact
           path: dist
+          merge-multiple: true
 
       - name: Display structure of downloaded files
         run: ls -R dist
