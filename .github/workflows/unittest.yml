@@ -28,18 +28,16 @@ jobs:
 
       - name: Install from source
         if: matrix.install_from == 'source'
-        run: pip install ./PythonAPI
+        run: |
+          pip install ./PythonAPI '${{ matrix.numpy }}'
+          python -c "import numpy as np; print(np.__version__)"
 
       - name: Install from sdist
         if: matrix.install_from == 'sdist'
         shell: bash
         run: |
           pipx run build --sdist ./PythonAPI
-          pip install ./PythonAPI/dist/*.tar.gz
-
-      - name: Install numpy
-        run: |
-          pip install '${{ matrix.numpy }}'
+          pip install ./PythonAPI/dist/*.tar.gz '${{ matrix.numpy }}'
           python -c "import numpy as np; print(np.__version__)"
 
       - name: Run test cases
