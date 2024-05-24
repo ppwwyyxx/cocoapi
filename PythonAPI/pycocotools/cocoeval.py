@@ -385,8 +385,8 @@ class COCOeval:
                     tps = np.logical_and(               dtm,  np.logical_not(dtIg) )
                     fps = np.logical_and(np.logical_not(dtm), np.logical_not(dtIg) )
 
-                    tp_sum = np.cumsum(tps, axis=1).astype(dtype=np.float)
-                    fp_sum = np.cumsum(fps, axis=1).astype(dtype=np.float)
+                    tp_sum = np.cumsum(tps, axis=1).astype(dtype=float)
+                    fp_sum = np.cumsum(fps, axis=1).astype(dtype=float)
                     for t, (tp, fp) in enumerate(zip(tp_sum, fp_sum)):
                         tp = np.array(tp)
                         fp = np.array(fp)
@@ -602,7 +602,7 @@ class Params:
         self.catIds = []
         # np.arange causes trouble.  the data point on arange is slightly larger than the true value
         self.iouThrs = np.array([0.35, 0.5 , 0.55, 0.6 , 0.65, 0.7 , 0.75, 0.8 , 0.85, 0.9 , 0.95]) # np.linspace(.5, 0.95, np.round((0.95 - .5) / .05) + 1, endpoint=True) # CH: added 0.35 in steps of 0.05 (10 steps)
-        self.recThrs = np.linspace(.0, 1.00, np.round((1.00 - .0) / .01) + 1, endpoint=True) # CH: in steps of 0.01 (101 steps..)
+        self.recThrs = np.linspace(.0, 1.00, int(np.round((1.00 - .0) / .01) + 1), endpoint=True) # CH: in steps of 0.01 (101 steps..)
         self.maxDets = [1, 10, 100]
         self.areaRng = [[0 ** 2, 1e5 ** 2], [0 ** 2, 32 ** 2], [32 ** 2, 96 ** 2], [96 ** 2, 1e5 ** 2]]
         self.areaRngLbl = ['all', 'small', 'medium', 'large']
@@ -614,8 +614,8 @@ class Params:
         self.imgIds = []
         self.catIds = []
         # np.arange causes trouble.  the data point on arange is slightly larger than the true value
-        self.iouThrs = np.linspace(.5, 0.95, np.round((0.95 - .5) / .05) + 1, endpoint=True)
-        self.recThrs = np.linspace(.0, 1.00, np.round((1.00 - .0) / .01) + 1, endpoint=True)
+        self.iouThrs = np.linspace(.5, 0.95, int(np.round((0.95 - .5) / .05) + 1), endpoint=True)
+        self.recThrs = np.linspace(.0, 1.00, int(np.round((1.00 - .0) / .01) + 1), endpoint=True)
         self.maxDets = [20]
         self.areaRng = [[0 ** 2, 1e5 ** 2], [32 ** 2, 96 ** 2], [96 ** 2, 1e5 ** 2]]
         self.areaRngLbl = ['all', 'medium', 'large']
