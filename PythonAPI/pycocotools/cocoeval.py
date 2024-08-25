@@ -6,6 +6,12 @@ import time
 from collections import defaultdict
 from . import mask as maskUtils
 import copy
+# added by CH:
+import math
+import json
+from datetime import datetime as dt2
+import os
+from pathlib import Path
 
 class COCOeval:
     # Interface for evaluating detection on the Microsoft COCO dataset.
@@ -22,7 +28,7 @@ class COCOeval:
     # The evaluation parameters are as follows (defaults in brackets):
     #  imgIds     - [all] N img ids to use for evaluation
     #  catIds     - [all] K cat ids to use for evaluation
-    #  iouThrs    - [.5:.05:.95] T=10 IoU thresholds for evaluation
+    #  iouThrs    - CH: added [0.35] + [.5:.05:.95] T=10 IoU thresholds for evaluation. Therefore in the code, it's often [1:] to ignore in general the 0.35 added threshold
     #  recThrs    - [0:.01:1] R=101 recall thresholds for evaluation
     #  areaRng    - [...] A=4 object area ranges for evaluation
     #  maxDets    - [1 10 100] M=3 thresholds on max detections per image
@@ -50,6 +56,9 @@ class COCOeval:
     #  precision  - [TxRxKxAxM] precision for every evaluation setting
     #  recall     - [TxKxAxM] max recall for every evaluation setting
     # Note: precision and recall==-1 for settings with no gt objects.
+
+    # CH: added a keyword for saving:
+    # savepath  - savepath as 
     #
     # See also coco, mask, pycocoDemo, pycocoEvalDemo
     #
@@ -68,6 +77,7 @@ class COCOeval:
             print('iouType not specified. use default iouType segm')
         self.cocoGt   = cocoGt              # ground truth COCO API
         self.cocoDt   = cocoDt              # detections COCO API
+        self.params   = {}                  # evaluation parameters
         self.evalImgs = defaultdict(list)   # per-image per-category evaluation results [KxAxI] elements
         self.eval     = {}                  # accumulated evaluation results
         self._gts = defaultdict(list)       # gt for evaluation
@@ -202,7 +212,7 @@ class COCOeval:
         if len(gts) == 0 or len(dts) == 0:
             return []
         ious = np.zeros((len(dts), len(gts)))
-        sigmas = p.kpt_oks_sigmas
+        sigmas = np.array([.26, .25, .25, .35, .35, .79, .79, .72, .72, .62,.62, 1.07, 1.07, .87, .87, .89, .89])/10.0
         vars = (sigmas * 2)**2
         k = len(sigmas)
         # compute oks between each detection and ground truth object
@@ -262,7 +272,7 @@ class COCOeval:
         # load computed ious
         ious = self.ious[imgId, catId][:, gtind] if len(self.ious[imgId, catId]) > 0 else self.ious[imgId, catId]
 
-        T = len(p.iouThrs)
+        T = len(p.iouThrs[1:]) # ch: [1:] to make 0.35 available
         G = len(gt)
         D = len(dt)
         gtm  = np.zeros((T,G))
@@ -270,7 +280,7 @@ class COCOeval:
         gtIg = np.array([g['_ignore'] for g in gt])
         dtIg = np.zeros((T,D))
         if not len(ious)==0:
-            for tind, t in enumerate(p.iouThrs):
+            for tind, t in enumerate(p.iouThrs[1:]): # ch: [1:] to make 0.35 available
                 for dind, d in enumerate(dt):
                     # information about best match so far (m=-1 -> unmatched)
                     iou = min([t,1-1e-10])
@@ -326,7 +336,7 @@ class COCOeval:
         if p is None:
             p = self.params
         p.catIds = p.catIds if p.useCats == 1 else [-1]
-        T           = len(p.iouThrs)
+        T           = len(p.iouThrs[1:]) # ch: [1:] to make 0.35 available
         R           = len(p.recThrs)
         K           = len(p.catIds) if p.useCats else 1
         A           = len(p.areaRng)
@@ -429,8 +439,14 @@ class COCOeval:
             iStr = ' {:<18} {} @[ IoU={:<9} | area={:>6s} | maxDets={:>3d} ] = {:0.3f}'
             titleStr = 'Average Precision' if ap == 1 else 'Average Recall'
             typeStr = '(AP)' if ap==1 else '(AR)'
-            iouStr = '{:0.2f}:{:0.2f}'.format(p.iouThrs[0], p.iouThrs[-1]) \
+            # ch: [1:] to make 0.35 available
+            iouStr = '{:0.2f}:{:0.2f}'.format(p.iouThrs[1], p.iouThrs[-1]) \
                 if iouThr is None else '{:0.2f}'.format(iouThr)
+
+            # CH on 2023-01-25: append new metric to metricsdict
+            typeStrCH = 'AP' if ap==1 else 'AR'
+            metricStr = '{}_{}_{}'.format(typeStrCH, iouStr, areaRng) # with underline, I can split later easily
+            self.metricsdict[metricStr] = {} # create nested dict for categories
 
             aind = [i for i, aRng in enumerate(p.areaRngLbl) if aRng == areaRng]
             mind = [i for i, mDet in enumerate(p.maxDets) if mDet == maxDets]
@@ -440,6 +456,7 @@ class COCOeval:
                 # IoU
                 if iouThr is not None:
                     t = np.where(iouThr == p.iouThrs)[0]
+                    # print(t)
                     s = s[t]
                 s = s[:,:,:,aind,mind]
             else:
@@ -453,23 +470,104 @@ class COCOeval:
                 mean_s = -1
             else:
                 mean_s = np.mean(s[s>-1])
+
+            # CH: added lines 459-466 to make it output the individual category APs (https://github.com/kimyoon-young/centerNet-deep-sort/blob/b694fc52f880dfbba481d43a7d5284a29f386ca7/tools/cocoeval.py#L458-L464)
+            # cacluate AP(average precision) for each category
+            num_classes = len(p.catIds)
+            avg_ap = 0.0
+            if ap == 1: # precision
+                # 2024-05-22: set final_numclasse
+                end_numclasses = num_classes # it's an integer, so no deepcopy needed
+                for i in range(0, num_classes):
+                    # print(s)
+                    # print(s.shape)
+                    print('category: {}: {:.3f}'.format(i,np.mean(s[:,:,i,:])))
+                    # CH on 2023-01-25: append to metricsdict
+                    self.metricsdict[metricStr][i] = '{:.3f}'.format(np.mean(s[:,:,i,:]))
+                    avg_ap_temp = np.mean(s[:,:,i,:][s[:,:,i,:]>-1]) # mistake found... corrected with -1 filter
+                    # print(avg_ap_temp.dtype)
+                    if math.isnan(avg_ap_temp) == False: # filter for nan
+                        avg_ap += avg_ap_temp
+                    else: # else, we got a nan and do not append.
+                        # instead, we decrease the number of classes to consider for the mean by 1
+                        end_numclasses = end_numclasses - 1
+                    # print(s[:,:,i,:])
+                if end_numclasses > 0:
+                    print('(all categories): {:.3f}'.format(avg_ap / end_numclasses))
+                    self.metricsdict[metricStr]['total'] = '{:.3f}'.format(avg_ap / end_numclasses)
+            elif ap ==0: # recall
+                # 2024-05-22: set final_numclasse
+                end_numclasses = num_classes # it's an integer, so no deepcopy needed
+                for i in range(0, num_classes):
+                    # print(s)
+                    # print(s.shape)
+                    print('category: {}: {:.3f}'.format(i,np.mean(s[:,i,:])))
+                    # CH on 2023-01-25: append to metricsdict
+                    self.metricsdict[metricStr][i] = '{:.3f}'.format(np.mean(s[:,i,:]))
+                    avg_ap_temp = np.nanmean(s[:,i,:][s[:,i,:]>-1])
+                    # print(avg_ap_temp.dtype)
+                    if math.isnan(avg_ap_temp) == False: # filter for nan
+                        avg_ap += avg_ap_temp
+                    else: # else, we got a nan and do not append.
+                        # instead, we decrease the number of classes to consider for the mean by 1
+                        end_numclasses = end_numclasses - 1 # 2024-05-22: this is a bug! because we change a variable we are iterating over!!
+                    # print(avg_ap)
+                if end_numclasses > 0:
+                    print('(all categories): {:.3f}'.format(avg_ap / end_numclasses))  
+                    self.metricsdict[metricStr]['total'] = '{:.3f}'.format(avg_ap / end_numclasses) 
+
+            # CH: 2023-01-25
+            # output to csv table for publication (for import to LaTex)
+            
             print(iStr.format(titleStr, typeStr, iouStr, areaRng, maxDets, mean_s))
             return mean_s
+
         def _summarizeDets():
-            stats = np.zeros((12,))
+            # CH:
+            p = self.params
+            # CH on 2023-01-25: 
+            # create pickle file from dictionary that I can write to
+            # simply in the current folder, with a date-time index (I can copy it from there)
+            # this is surely not beautiful, but good enough for my needs
+            # like this, I don't have to change any return arguments
+            self.metricsdict = {}
+            stats = np.zeros((16,))
             stats[0] = _summarize(1)
             stats[1] = _summarize(1, iouThr=.5, maxDets=self.params.maxDets[2])
             stats[2] = _summarize(1, iouThr=.75, maxDets=self.params.maxDets[2])
             stats[3] = _summarize(1, areaRng='small', maxDets=self.params.maxDets[2])
             stats[4] = _summarize(1, areaRng='medium', maxDets=self.params.maxDets[2])
             stats[5] = _summarize(1, areaRng='large', maxDets=self.params.maxDets[2])
-            stats[6] = _summarize(0, maxDets=self.params.maxDets[0])
-            stats[7] = _summarize(0, maxDets=self.params.maxDets[1])
+            stats[6] = _summarize(0, maxDets=self.params.maxDets[0]) # maxdets = 1
+            stats[7] = _summarize(0, maxDets=self.params.maxDets[1]) # maxdets = 10
             stats[8] = _summarize(0, maxDets=self.params.maxDets[2])
             stats[9] = _summarize(0, areaRng='small', maxDets=self.params.maxDets[2])
             stats[10] = _summarize(0, areaRng='medium', maxDets=self.params.maxDets[2])
             stats[11] = _summarize(0, areaRng='large', maxDets=self.params.maxDets[2])
+            stats[12] = _summarize(1, iouThr=.35, maxDets=self.params.maxDets[2]) # ch added: precision at IoU 0.35
+            stats[13] =_summarize(0, iouThr=.35, maxDets=self.params.maxDets[2]) # ch: recall at IoU 0.35
+            stats[14] =_summarize(0, iouThr=.5, maxDets=self.params.maxDets[2]) # ch: recall at IoU 0.5
+            stats[15] =_summarize(0, iouThr=.75, maxDets=self.params.maxDets[2]) # ch: recall at IoU 0.75
+
+            # CH: wrote for saving LineaMapper output. Commented below on 2023-08-14 as not to spam during training.
+            if p.savepath != None:
+                savepath = Path(p.savepath) # convert to Path from pathlib module
+                # make savepath if it does not exist:
+                os.makedirs(savepath, exist_ok=True)
+                # save metricsdict
+                # print(self.metricsdict) # for debugging, print before saving
+                # save as json (module imported by CH)
+
+                now = dt2.now() # datetime module imported by CH
+                dt_string = now.strftime("%Y_%m_%d_%H_%M_%S")
+                # home_directory = os.path.expanduser( '~' ) # save to home directory
+                # print(home_directory)
+                with open(os.path.join(savepath, "{}_metricsdict_{}.json".format(dt_string, self.params.iouType)), "w") as write_file:
+                    json.dump(self.metricsdict, write_file, indent=4)
+
+
             return stats
+
         def _summarizeKps():
             stats = np.zeros((10,))
             stats[0] = _summarize(1, maxDets=20)
@@ -503,24 +601,25 @@ class Params:
         self.imgIds = []
         self.catIds = []
         # np.arange causes trouble.  the data point on arange is slightly larger than the true value
-        self.iouThrs = np.linspace(.5, 0.95, int(np.round((0.95 - .5) / .05)) + 1, endpoint=True)
-        self.recThrs = np.linspace(.0, 1.00, int(np.round((1.00 - .0) / .01)) + 1, endpoint=True)
+        self.iouThrs = np.array([0.35, 0.5 , 0.55, 0.6 , 0.65, 0.7 , 0.75, 0.8 , 0.85, 0.9 , 0.95]) # np.linspace(.5, 0.95, np.round((0.95 - .5) / .05) + 1, endpoint=True) # CH: added 0.35 in steps of 0.05 (10 steps)
+        self.recThrs = np.linspace(.0, 1.00, int(np.round((1.00 - .0) / .01) + 1), endpoint=True) # CH: in steps of 0.01 (101 steps..)
         self.maxDets = [1, 10, 100]
         self.areaRng = [[0 ** 2, 1e5 ** 2], [0 ** 2, 32 ** 2], [32 ** 2, 96 ** 2], [96 ** 2, 1e5 ** 2]]
         self.areaRngLbl = ['all', 'small', 'medium', 'large']
         self.useCats = 1
+        # CH: added default savepath as None
+        self.savepath = None
 
     def setKpParams(self):
         self.imgIds = []
         self.catIds = []
         # np.arange causes trouble.  the data point on arange is slightly larger than the true value
-        self.iouThrs = np.linspace(.5, 0.95, int(np.round((0.95 - .5) / .05)) + 1, endpoint=True)
-        self.recThrs = np.linspace(.0, 1.00, int(np.round((1.00 - .0) / .01)) + 1, endpoint=True)
+        self.iouThrs = np.linspace(.5, 0.95, int(np.round((0.95 - .5) / .05) + 1), endpoint=True)
+        self.recThrs = np.linspace(.0, 1.00, int(np.round((1.00 - .0) / .01) + 1), endpoint=True)
         self.maxDets = [20]
         self.areaRng = [[0 ** 2, 1e5 ** 2], [32 ** 2, 96 ** 2], [96 ** 2, 1e5 ** 2]]
         self.areaRngLbl = ['all', 'medium', 'large']
         self.useCats = 1
-        self.kpt_oks_sigmas = np.array([.26, .25, .25, .35, .35, .79, .79, .72, .72, .62,.62, 1.07, 1.07, .87, .87, .89, .89])/10.0
 
     def __init__(self, iouType='segm'):
         if iouType == 'segm' or iouType == 'bbox':
