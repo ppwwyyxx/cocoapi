@@ -12,19 +12,12 @@ jobs:
         include:
           - os: ubuntu-latest # linux x86_64
             cibw_archs: x86_64
-            cibw_skip: "pp*"
-          - os: ubuntu-latest # linux arm64 gnu
+          - os: ubuntu-24.04-arm # linux arm64 musl
             cibw_archs: aarch64
-            cibw_skip: "pp* *musllinux*"
-          - os: ubuntu-latest # linux arm64 musl
-            cibw_archs: aarch64
-            cibw_skip: "pp* *manylinux*"
           - os: windows-latest
             cibw_archs: AMD64 ARM64
-            cibw_skip: "pp*"
-          - os: macos-14
+          - os: macos-latest
             cibw_archs: universal2
-            cibw_skip: "pp*"
 
     steps:
       - uses: actions/checkout@v4
@@ -33,17 +26,27 @@ jobs:
         if: runner.os == 'Linux' && matrix.cibw_archs == 'aarch64'
         uses: docker/setup-qemu-action@v3
         with:
-          platforms: arm64
+          platforms: all
 
       - name: Build wheels on ${{ matrix.os }}-${{ matrix.cibw_archs }}
-        uses: pypa/cibuildwheel@v2.17
+        uses: pypa/cibuildwheel@v2.23
         env:
           CIBW_BUILD_FRONTEND: build
           CIBW_PROJECT_REQUIRES_PYTHON: ">=3.9"
-          CIBW_SKIP: ${{ matrix.cibw_skip }}
+          CIBW_SKIP: "pp*"
           CIBW_ARCHS: ${{ matrix.cibw_archs }}
+          CIBW_ENABLE: cpython-freethreading
           CIBW_TEST_COMMAND: python {project}/tests/test_cases.py
-          CIBW_TEST_SKIP: "*-win_arm64 *-musllinux_aarch64"
+          CIBW_TEST_SKIP: "*-win_arm64"
+          CIBW_BEFORE_BUILD: pip install abi3audit
+          CIBW_REPAIR_WHEEL_COMMAND_LINUX: >
+            auditwheel repair -w {dest_dir} {wheel} &&
+            abi3audit --strict --report {wheel}
+          CIBW_REPAIR_WHEEL_COMMAND_MACOS: >
+            delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel} &&
+            abi3audit --strict --report {wheel}
+          CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: >
+            abi3audit --strict --report {wheel}
         with:
           package-dir: ./PythonAPI
 
