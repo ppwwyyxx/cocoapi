@@ -26,8 +26,6 @@ ext_modules = [
             'pycocotools._mask',
             sources=['./common/maskApi.c', 'pycocotools/_mask.pyx'],
             include_dirs=[np.get_include(), './common'],
-            extra_compile_args=[] if platform.system()=='Windows' else
-            ['-Wno-cpp', '-Wno-unused-function', '-std=c99'],
             **limited_api_args
         )
     ]
