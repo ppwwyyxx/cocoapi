@@ -32,15 +32,14 @@ jobs:
           CIBW_ARCHS: ${{ matrix.cibw_archs }}
           CIBW_ENABLE: cpython-freethreading
           CIBW_TEST_COMMAND: python {project}/tests/test_cases.py
-          CIBW_BEFORE_BUILD: pip install abi3audit
           CIBW_REPAIR_WHEEL_COMMAND_LINUX: >
             auditwheel repair -w {dest_dir} {wheel} &&
-            abi3audit --strict --report {wheel}
+            uvx abi3audit --strict --report {wheel}
           CIBW_REPAIR_WHEEL_COMMAND_MACOS: >
             delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel} &&
-            abi3audit --strict --report {wheel}
+            uvx abi3audit --strict --report {wheel}
           CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: >
-            abi3audit --strict --report {wheel}
+            uvx abi3audit --strict --report {wheel}
         with:
           package-dir: ./PythonAPI
 
