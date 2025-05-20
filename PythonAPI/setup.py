@@ -10,7 +10,7 @@ from setuptools import setup, Extension
 import numpy as np
 from Cython.Build import cythonize
 
-py_gil_disabled = sysconfig.get_config_var('Py_ENABLE_GIL')
+py_gil_disabled = sysconfig.get_config_var('Py_GIL_DISABLED')
 use_limited_api = not py_gil_disabled and platform.python_implementation() == 'CPython' and sys.version_info >= (3, 11)
 if use_limited_api:
     limited_api_args = {
