@@ -6,6 +6,7 @@ from pathlib import Path
 from setuptools import setup, Extension
 
 import numpy as np
+from Cython.Build import cythonize
 
 ext_modules = [
         Extension(
@@ -38,5 +39,5 @@ setup(
         'numpy',
     ],
     version='2.0.8',
-    ext_modules=ext_modules
+    ext_modules=cythonize(ext_modules)
 )
