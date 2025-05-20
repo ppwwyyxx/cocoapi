@@ -2,6 +2,7 @@
 To install library to Python site-packages run "python -m pip install --use-feature=in-tree-build ."
 """
 import platform
+import sys
 import sysconfig
 from pathlib import Path
 from setuptools import setup, Extension
@@ -10,13 +11,13 @@ import numpy as np
 from Cython.Build import cythonize
 
 py_gil_disabled = sysconfig.get_config_var('Py_ENABLE_GIL')
-use_limited_api = not py_gil_disabled and platform.python_implementation() == 'CPython'
+use_limited_api = not py_gil_disabled and platform.python_implementation() == 'CPython' and sys.version_info >= (3, 11)
 if use_limited_api:
     limited_api_args = {
         "py_limited_api": True,
-        "define_macros": [("Py_LIMITED_API", "0x03090000")],
+        "define_macros": [("Py_LIMITED_API", "0x030B0000")],
     }
-    options = {"bdist_wheel": {"py_limited_api": "cp39"}}
+    options = {"bdist_wheel": {"py_limited_api": "cp311"}}
 else:
     limited_api_args = {}
     options = {}
