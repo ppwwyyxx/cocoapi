@@ -12,16 +12,12 @@ jobs:
         include:
           - os: ubuntu-latest
             cibw_archs: x86_64
-            cibw_skip: "pp*"
           - os: ubuntu-24.04-arm
             cibw_archs: aarch64
-            cibw_skip: "pp*"
           - os: windows-latest
             cibw_archs: AMD64 ARM64
-            cibw_skip: "pp*"
           - os: macos-latest
             cibw_archs: universal2
-            cibw_skip: "pp*"
 
     steps:
       - uses: actions/checkout@v4
@@ -32,10 +28,19 @@ jobs:
         env:
           CIBW_BUILD_FRONTEND: build[uv]
           CIBW_PROJECT_REQUIRES_PYTHON: ">=3.9"
-          CIBW_SKIP: ${{ matrix.cibw_skip }}
+          CIBW_SKIP: "pp*"
           CIBW_ARCHS: ${{ matrix.cibw_archs }}
-          CIBW_TEST_COMMAND: python {project}/tests/test_cases.py
           CIBW_ENABLE: cpython-freethreading
+          CIBW_TEST_COMMAND: python {project}/tests/test_cases.py
+          CIBW_BEFORE_BUILD: pip install abi3audit
+          CIBW_REPAIR_WHEEL_COMMAND_LINUX: >
+            auditwheel repair -w {dest_dir} {wheel} &&
+            abi3audit --strict --report {wheel}
+          CIBW_REPAIR_WHEEL_COMMAND_MACOS: >
+            delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel} &&
+            abi3audit --strict --report {wheel}
+          CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: >
+            abi3audit --strict --report {wheel}
         with:
           package-dir: ./PythonAPI
 
