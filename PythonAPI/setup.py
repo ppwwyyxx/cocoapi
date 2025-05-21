@@ -11,13 +11,13 @@ import numpy as np
 from Cython.Build import cythonize
 
 py_gil_disabled = sysconfig.get_config_var('Py_GIL_DISABLED')
-use_limited_api = not py_gil_disabled and platform.python_implementation() == 'CPython' and sys.version_info >= (3, 11)
+use_limited_api = not py_gil_disabled and platform.python_implementation() == 'CPython' and sys.version_info >= (3, 12)
 if use_limited_api:
     limited_api_args = {
         "py_limited_api": True,
-        "define_macros": [("Py_LIMITED_API", "0x030B0000")],
+        "define_macros": [("Py_LIMITED_API", "0x030C0000")],
     }
-    options = {"bdist_wheel": {"py_limited_api": "cp311"}}
+    options = {"bdist_wheel": {"py_limited_api": "cp312"}}
 else:
     limited_api_args = {}
     options = {}
