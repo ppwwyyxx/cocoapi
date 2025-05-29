@@ -16,9 +16,6 @@ jobs:
           - os: ubuntu-latest # linux arm64 gnu
             cibw_archs: aarch64
             cibw_skip: "pp* *musllinux*"
-          - os: ubuntu-latest # linux arm64 musl
-            cibw_archs: aarch64
-            cibw_skip: "pp* *manylinux*"
           - os: windows-latest
             cibw_archs: AMD64 ARM64
             cibw_skip: "pp*"
