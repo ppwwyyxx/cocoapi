@@ -10,37 +10,28 @@ jobs:
     strategy:
       matrix:
         include:
-          - os: ubuntu-latest # linux x86_64
+          - os: ubuntu-latest
             cibw_archs: x86_64
-            cibw_skip: "pp*"
-          - os: ubuntu-latest # linux arm64 gnu
+          - os: ubuntu-24.04-arm
             cibw_archs: aarch64
-            cibw_skip: "pp* *musllinux*"
           - os: windows-latest
             cibw_archs: AMD64 ARM64
-            cibw_skip: "pp*"
-          - os: macos-14
+          - os: macos-latest
             cibw_archs: universal2
-            cibw_skip: "pp*"
 
     steps:
       - uses: actions/checkout@v4
-
-      - name: Set up QEMU
-        if: runner.os == 'Linux' && matrix.cibw_archs == 'aarch64'
-        uses: docker/setup-qemu-action@v3
-        with:
-          platforms: arm64
+      - uses: astral-sh/setup-uv@v6
 
       - name: Build wheels on ${{ matrix.os }}-${{ matrix.cibw_archs }}
-        uses: pypa/cibuildwheel@v2.17
+        uses: pypa/cibuildwheel@v2.23
         env:
-          CIBW_BUILD_FRONTEND: build
+          CIBW_BUILD_FRONTEND: build[uv]
           CIBW_PROJECT_REQUIRES_PYTHON: ">=3.9"
-          CIBW_SKIP: ${{ matrix.cibw_skip }}
+          CIBW_SKIP: "pp*"
           CIBW_ARCHS: ${{ matrix.cibw_archs }}
+          CIBW_ENABLE: cpython-freethreading
           CIBW_TEST_COMMAND: python {project}/tests/test_cases.py
-          CIBW_TEST_SKIP: "*-win_arm64 *-musllinux_aarch64"
         with:
           package-dir: ./PythonAPI
 

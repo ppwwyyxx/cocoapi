@@ -11,34 +11,42 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
-        install_from: [source, sdist]
-        numpy: [oldest-supported-numpy, numpy<2, numpy>=2.0.0rc1]
+        os:
+          - ubuntu-latest
+          - ubuntu-24.04-arm
+          - macos-latest
+          - windows-latest
+        install_from:
+          - source
+          - sdist
+        numpy:
+          - oldest-supported-numpy
+          - numpy>=2.0.0
 
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.9"
+      - uses: astral-sh/setup-uv@v6
 
       - name: Fix windows symlink
-        if: matrix.os == 'windows-latest'
+        if: runner.os == 'Windows'
         shell: bash
         run: rm ./PythonAPI/common && cp -r ./common ./PythonAPI
 
-      - name: Install from source
+      - name: Test from source
         if: matrix.install_from == 'source'
+        shell: bash
         run: |
-          pip install ./PythonAPI '${{ matrix.numpy }}'
-          python -c "import numpy as np; print(np.__version__)"
+          for version in 3.9 3.10 3.11 3.12 3.13 3.13t
+          do
+            uv run --with ./PythonAPI --with '${{ matrix.numpy }}' --python $version --managed-python tests/test_cases.py
+          done
 
-      - name: Install from sdist
+      - name: Test from sdist
         if: matrix.install_from == 'sdist'
         shell: bash
         run: |
-          pipx run build --sdist ./PythonAPI
-          pip install ./PythonAPI/dist/*.tar.gz '${{ matrix.numpy }}'
-          python -c "import numpy as np; print(np.__version__)"
-
-      - name: Run test cases
-        run: python tests/test_cases.py
+          uv build --sdist ./PythonAPI
+          for version in 3.9 3.10 3.11 3.12 3.13 3.13t
+          do
+            uv run --with ./PythonAPI/dist/*.tar.gz --with '${{ matrix.numpy }}' --python $version --managed-python tests/test_cases.py
+          done
