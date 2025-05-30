@@ -35,6 +35,9 @@ jobs:
         with:
           package-dir: ./PythonAPI
 
+      - name: Run abi3audit
+        run: uvx abi3audit --report ./wheelhouse/*-abi3-*.whl
+
       - uses: actions/upload-artifact@v4
         with:
           name: pycocotools-${{ matrix.os }}-${{ matrix.cibw_archs }}-${{ strategy.job-index }}
