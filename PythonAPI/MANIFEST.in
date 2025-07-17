@@ -1,1 +1,3 @@
 graft ./common
+exclude **/*mask.c
+include **/*mask.pyx

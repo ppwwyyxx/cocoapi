@@ -2,18 +2,32 @@
 To install library to Python site-packages run "python -m pip install --use-feature=in-tree-build ."
 """
 import platform
+import sys
+import sysconfig
 from pathlib import Path
 from setuptools import setup, Extension
 
 import numpy as np
+from Cython.Build import cythonize
+
+py_gil_disabled = sysconfig.get_config_var('Py_GIL_DISABLED')
+use_limited_api = not py_gil_disabled and platform.python_implementation() == 'CPython' and sys.version_info >= (3, 12)
+if use_limited_api:
+    limited_api_args = {
+        "py_limited_api": True,
+        "define_macros": [("Py_LIMITED_API", "0x030C0000")],
+    }
+    options = {"bdist_wheel": {"py_limited_api": "cp312"}}
+else:
+    limited_api_args = {}
+    options = {}
 
 ext_modules = [
         Extension(
             'pycocotools._mask',
             sources=['./common/maskApi.c', 'pycocotools/_mask.pyx'],
             include_dirs=[np.get_include(), './common'],
-            extra_compile_args=[] if platform.system()=='Windows' else
-            ['-Wno-cpp', '-Wno-unused-function', '-std=c99'],
+            **limited_api_args
         )
     ]
 
@@ -21,7 +35,6 @@ try:
     readme = Path(__file__).parent.parent.joinpath("README.md").read_text("utf-8")
 except FileNotFoundError:
     readme = ""
-
 
 setup(
     name='pycocotools',
@@ -34,9 +47,12 @@ setup(
     package_dir={'pycocotools': 'pycocotools'},
     python_requires='>=3.9',
     install_requires=[
-        'matplotlib>=2.1.0',
         'numpy',
     ],
-    version='2.0.7',
-    ext_modules=ext_modules
+    extras_require={
+        'all': ['matplotlib>=2.1.0'],
+    },
+    version='2.0.10',
+    ext_modules=cythonize(ext_modules),
+    options=options,
 )
