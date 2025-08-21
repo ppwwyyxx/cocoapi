@@ -36,7 +36,7 @@ jobs:
         if: matrix.install_from == 'source'
         shell: bash
         run: |
-          for version in 3.9 3.10 3.11 3.12 3.13 3.13t
+          for version in 3.9 3.10 3.11 3.12 3.13 3.13t 3.14 3.14t
           do
             uv run --with ./PythonAPI --with '${{ matrix.numpy }}' --python $version --managed-python tests/test_cases.py
           done
@@ -46,7 +46,7 @@ jobs:
         shell: bash
         run: |
           uv build --sdist ./PythonAPI
-          for version in 3.9 3.10 3.11 3.12 3.13 3.13t
+          for version in 3.9 3.10 3.11 3.12 3.13 3.13t 3.14 3.14t
           do
             uv run --with ./PythonAPI/dist/*.tar.gz --with '${{ matrix.numpy }}' --python $version --managed-python tests/test_cases.py
           done

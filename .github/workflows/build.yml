@@ -24,7 +24,7 @@ jobs:
       - uses: astral-sh/setup-uv@v6
 
       - name: Build wheels on ${{ matrix.os }}-${{ matrix.cibw_archs }}
-        uses: pypa/cibuildwheel@v2.23
+        uses: pypa/cibuildwheel@v3.1.4
         env:
           CIBW_BUILD_FRONTEND: build[uv]
           CIBW_PROJECT_REQUIRES_PYTHON: ">=3.9"
