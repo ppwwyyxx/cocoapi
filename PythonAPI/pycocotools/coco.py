@@ -311,7 +311,7 @@ class COCO:
         :return: res (obj)         : result api object
         """
         res = COCO()
-        res.dataset['info'] = copy.deepcopy(self.dataset['info'])
+        res.dataset['info'] = copy.deepcopy(self.dataset.get('info', {}))
         res.dataset['images'] = [img for img in self.dataset['images']]
 
         print('Loading and preparing results...')
