@@ -52,7 +52,7 @@ setup(
     extras_require={
         'all': ['matplotlib>=2.1.0'],
     },
-    version='2.0.10',
+    version='2.0.11',
     ext_modules=cythonize(ext_modules),
     options=options,
 )
