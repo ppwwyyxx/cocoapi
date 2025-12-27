@@ -26,6 +26,20 @@ np.import_array()
 cdef extern from "numpy/arrayobject.h":
     void PyArray_ENABLEFLAGS(np.ndarray arr, int flags)
 
+# Handle numpy 2.0 compatibility
+# NPY_ARRAY_OWNDATA was removed in numpy 2.0, use NPY_OWNDATA instead
+# Both have the same value 0x0004
+cdef extern from *:
+    """
+    #include <numpy/npy_common.h>
+    #if NPY_ABI_VERSION < 0x02000000
+        #define NPY_ARRAY_OWNDATA_FLAG NPY_ARRAY_OWNDATA
+    #else
+        #define NPY_ARRAY_OWNDATA_FLAG 0x0004
+    #endif
+    """
+    int NPY_ARRAY_OWNDATA_FLAG
+
 # Declare the prototype of the C functions in MaskApi.h
 cdef extern from "maskApi.h":
     ctypedef unsigned int uint
@@ -95,7 +109,7 @@ cdef class Masks:
         # Create a 1D array, and reshape it to fortran/Matlab column-major array
         ndarray = np.PyArray_SimpleNewFromData(1, shape, np.NPY_UINT8, self._mask).reshape((self._h, self._w, self._n), order='F')
         # The _mask allocated by Masks is now handled by ndarray
-        PyArray_ENABLEFLAGS(ndarray, np.NPY_ARRAY_OWNDATA)
+        PyArray_ENABLEFLAGS(ndarray, NPY_ARRAY_OWNDATA_FLAG)
         return ndarray
 
 # internal conversion from Python RLEs object to compressed RLE format
@@ -164,7 +178,7 @@ def area(rleObjs):
     shape[0] = <np.npy_intp> Rs._n
     a = np.array((Rs._n, ), dtype=np.uint8)
     a = np.PyArray_SimpleNewFromData(1, shape, np.NPY_UINT32, _a)
-    PyArray_ENABLEFLAGS(a, np.NPY_ARRAY_OWNDATA)
+    PyArray_ENABLEFLAGS(a, NPY_ARRAY_OWNDATA_FLAG)
     return a
 
 # iou computation. support function overload (RLEs-RLEs and bbox-bbox).
@@ -236,7 +250,7 @@ def iou( dt, gt, pyiscrowd ):
     iou = np.zeros((m*n, ), dtype=np.double)
     shape[0] = <np.npy_intp> m*n
     iou = np.PyArray_SimpleNewFromData(1, shape, np.NPY_DOUBLE, _iou)
-    PyArray_ENABLEFLAGS(iou, np.NPY_ARRAY_OWNDATA)
+    PyArray_ENABLEFLAGS(iou, NPY_ARRAY_OWNDATA_FLAG)
     _iouFun(dt, gt, iscrowd, m, n, iou)
     return iou.reshape((m,n), order='F')
 
@@ -249,7 +263,7 @@ def toBbox( rleObjs ):
     shape[0] = <np.npy_intp> 4*n
     bb = np.array((1,4*n), dtype=np.double)
     bb = np.PyArray_SimpleNewFromData(1, shape, np.NPY_DOUBLE, _bb).reshape((n, 4))
-    PyArray_ENABLEFLAGS(bb, np.NPY_ARRAY_OWNDATA)
+    PyArray_ENABLEFLAGS(bb, NPY_ARRAY_OWNDATA_FLAG)
     return bb
 
 def frBbox(np.ndarray[np.double_t, ndim=2] bb, siz h, siz w ):
