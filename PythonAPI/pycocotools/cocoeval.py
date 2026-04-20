@@ -7,6 +7,7 @@ from collections import defaultdict
 from . import mask as maskUtils
 import copy
 
+
 class COCOeval:
     # Interface for evaluating detection on the Microsoft COCO dataset.
     #
@@ -269,31 +270,63 @@ class COCOeval:
         dtm  = np.zeros((T,D))
         gtIg = np.array([g['_ignore'] for g in gt])
         dtIg = np.zeros((T,D))
-        if not len(ious)==0:
-            for tind, t in enumerate(p.iouThrs):
-                for dind, d in enumerate(dt):
-                    # information about best match so far (m=-1 -> unmatched)
-                    iou = min([t,1-1e-10])
-                    m   = -1
-                    for gind, g in enumerate(gt):
-                        # if this gt already matched, and not a crowd, continue
-                        if gtm[tind,gind]>0 and not iscrowd[gind]:
-                            continue
-                        # if dt matched to reg gt, and on ignore gt, stop
-                        if m>-1 and gtIg[m]==0 and gtIg[gind]==1:
-                            break
-                        # continue to next gt unless better match made
-                        if ious[dind,gind] < iou:
-                            continue
-                        # if match successful and best so far, store appropriately
-                        iou=ious[dind,gind]
-                        m=gind
-                    # if match made store id of match for both dt and gt
-                    if m ==-1:
-                        continue
-                    dtIg[tind,dind] = gtIg[m]
-                    dtm[tind,dind]  = gt[m]['id']
-                    gtm[tind,m]     = d['id']
+        if G > 0 and D > 0 and len(ious) > 0:
+            # The dt iteration must remain sequential because each match can
+            # make a non-crowd gt unavailable for subsequent dts at the same
+            # threshold. Within each dt, the gt search and the T thresholds are
+            # evaluated in parallel with numpy while preserving the original
+            # semantics, including the "last best gt wins" tie-break.
+            ious_dg = np.ascontiguousarray(ious, dtype=np.float64)
+            iscrowd_arr = np.asarray(iscrowd, dtype=bool)
+            gt_ids = np.array([g['id'] for g in gt])
+            dt_ids = np.array([d['id'] for d in dt])
+            G_normal = int((gtIg == 0).sum())  # non-ignored gts come first
+            thr_col = np.minimum(
+                np.asarray(p.iouThrs, dtype=np.float64), 1 - 1e-10
+            )[:, None]
+            # avail[t, g] tracks whether gt g is still available at threshold t.
+            # A non-crowd gt becomes unavailable once matched; crowd gts can
+            # match many dts and stay available.
+            avail = np.ones((T, G), dtype=bool)
+            for dind in range(D):
+                ious_d = ious_dg[dind]
+                # candidate gt must still be available AND clear the threshold
+                candidate = avail & (ious_d >= thr_col)
+                # information about best match so far (m=-1 -> unmatched)
+                m = np.full(T, -1, dtype=np.intp)
+                # search non-ignored (regular) gts first
+                if G_normal > 0:
+                    cand_n = candidate[:, :G_normal]
+                    has_normal = cand_n.any(axis=1)
+                    masked = np.where(cand_n, ious_d[:G_normal], -1.0)
+                    # argmax with tie-break to the LAST index, matching the
+                    # original loop's `m = gind` on `>= iou`: reverse, argmax,
+                    # then map back to the original index space.
+                    idx_rev = masked[:, ::-1].argmax(axis=1)
+                    m_normal = (G_normal - 1) - idx_rev
+                    m = np.where(has_normal, m_normal, m)
+                else:
+                    has_normal = np.zeros(T, dtype=bool)
+                # only fall back to ignored gts where no regular match was
+                # found (mirrors the original `break` once a non-ignored
+                # match exists)
+                if G_normal < G:
+                    cand_i = candidate[:, G_normal:] & ~has_normal[:, None]
+                    has_ignored = cand_i.any(axis=1)
+                    masked_i = np.where(cand_i, ious_d[G_normal:], -1.0)
+                    idx_rev_i = masked_i[:, ::-1].argmax(axis=1)
+                    m_ignored = (G - 1) - idx_rev_i
+                    m = np.where(has_ignored, m_ignored, m)
+                valid = m >= 0
+                if valid.any():
+                    tinds = np.nonzero(valid)[0]
+                    gs = m[tinds]
+                    # store id of match for both dt and gt
+                    dtIg[tinds, dind] = gtIg[gs]
+                    dtm[tinds, dind] = gt_ids[gs]
+                    gtm[tinds, gs] = dt_ids[dind]
+                    # matched non-crowd gts become unavailable to later dts
+                    avail[tinds, gs] = iscrowd_arr[gs]
         # set unmatched detections outside of area range to ignore
         a = np.array([d['area']<aRng[0] or d['area']>aRng[1] for d in dt]).reshape((1, len(dt)))
         dtIg = np.logical_or(dtIg, np.logical_and(dtm==0, np.repeat(a,T,0)))
