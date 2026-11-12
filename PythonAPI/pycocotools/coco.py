@@ -78,7 +78,7 @@ class COCO:
         if not annotation_file == None:
             print('loading annotations into memory...')
             tic = time.time()
-            with open(annotation_file, 'r') as f:
+            with open(annotation_file, 'r', encoding='utf-8') as f:
                 dataset = json.load(f)
             assert type(dataset)==dict, 'annotation file format {} not supported'.format(type(dataset))
             print('Done (t={:0.2f}s)'.format(time.time()- tic))
@@ -317,7 +317,7 @@ class COCO:
         print('Loading and preparing results...')
         tic = time.time()
         if type(resFile) == str or (PYTHON_VERSION == 2 and type(resFile) == unicode):
-            with open(resFile) as f:
+            with open(resFile, encoding='utf-8') as f:
                 anns = json.load(f)
         elif type(resFile) == np.ndarray:
             anns = self.loadNumpyAnnotations(resFile)

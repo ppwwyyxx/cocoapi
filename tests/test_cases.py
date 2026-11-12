@@ -1,6 +1,12 @@
+import io
+import json
+import os
+import shutil
+import tempfile
 import unittest
 import numpy as np
 import pycocotools.mask as mask_util
+from pycocotools.coco import COCO
 
 def _encode(x):
     return mask_util.encode(np.asfortranarray(x, np.uint8))
@@ -38,6 +44,33 @@ class TestMaskUtil(unittest.TestCase):
         rle_new = mask_util.encode(mask)
         new_bbox = mask_util.toBbox(rle_new)
         self.assertTrue(np.equal(orig_bbox, new_bbox).all())
+
+class TestCOCO(unittest.TestCase):
+    def testNonAsciiNames(self):
+        # annotation files are UTF-8, whatever the platform's default encoding
+        name = u"собака"
+        dataset = {
+            "images": [{"id": 1, "file_name": name + ".jpg", "width": 10, "height": 10}],
+            "categories": [{"id": 1, "name": name}],
+            "annotations": [{"id": 1, "image_id": 1, "category_id": 1, "bbox": [1, 1, 5, 5], "area": 25, "iscrowd": 0}],
+        }
+        results = [{"image_id": 1, "category_id": 1, "bbox": [1, 1, 5, 5], "score": 0.9, "note": name}]
+        tmp_dir = tempfile.mkdtemp()
+        try:
+            ann_file = os.path.join(tmp_dir, "annotations.json")
+            res_file = os.path.join(tmp_dir, "results.json")
+            for path, obj in ((ann_file, dataset), (res_file, results)):
+                with io.open(path, "w", encoding="utf-8") as f:
+                    f.write(json.dumps(obj, ensure_ascii=False))
+
+            coco = COCO(ann_file)
+            self.assertEqual(coco.loadCats(1)[0]["name"], name)
+            self.assertEqual(coco.loadImgs(1)[0]["file_name"], name + ".jpg")
+
+            res = coco.loadRes(res_file)
+            self.assertEqual(res.loadAnns(res.getAnnIds())[0]["note"], name)
+        finally:
+            shutil.rmtree(tmp_dir)
 
 if __name__ == "__main__":
     unittest.main()
